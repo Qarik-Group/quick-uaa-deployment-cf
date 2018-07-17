@@ -1,0 +1,10 @@
+operators/
+state/
+site
+tmp
+.DS_Store
+/bin/bosh
+/bin/uaa
+/bin/cf
+/vars.yml
+/vars.yml.bck

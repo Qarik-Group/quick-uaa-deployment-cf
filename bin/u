@@ -1,0 +1,222 @@
+#!/bin/bash
+repo_root=$(dirname $(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd))
+
+project_root=${UAADEPLOY_PROJECT_ROOT:-${repo_root}}
+state=${UAADEPLOY_STATE_ROOT:-${project_root}/state}
+vars_file=${UAADEPLOY_VARS_FILE:-${project_root}/vars.yml}
+vars_store=${UAADEPLOY_VARS_STORE:-${state}/creds.yml}
+
+state_arg="--state ${state_json_path}"
+vars_store_arg="--vars-store ${vars_store}"
+
+mkdir -p ${state}
+tmp=$(mktemp -d)
+trap "rm -fr ${tmp}" EXIT
+var_cache="${tmp}/vars_cache.yml"
+int_cache="${tmp}/int_cache.yml"
+
+PATH=${repo_root}/bin:${PATH}
+
+version=$(grep uaa-deployment ${repo_root}/.versions | cut -d= -f2)
+
+pushd () {
+    command pushd "$@" > /dev/null
+}
+
+popd () {
+    command popd "$@" > /dev/null
+}
+
+usage() {
+    echo "UAA Deployment CLI v${version:-(development)}"
+    echo "  up -- deploys the UAA to Cloud Foundry"
+    echo "  down -- deletes the UAA app from Cloud Foundry"
+    echo "  clean -- start with a clean enviorment - use this only after you've torn down your env"
+    echo "  ssh -- ssh into the UAA app instance"
+    echo "  env -- sourceable environment variables for cli clients"
+    echo "  int -- wrapper for 'bosh int' for the bosh manifest"
+    echo "  info -- UAA information"
+    echo "  auth-client -- configures uaa cli as a client only"
+    exit 1
+}
+
+up_usage() {
+    echo "$(ls ${repo_root}/ops/flags | cut -d "." -f 1 | sed 's/^/  --/')"
+    echo ""
+}
+
+down_usage() {
+    echo "  -c | --clean  cleans up your enviroment by removing state files"
+}
+
+platform() {
+    if [ "$(uname)" == "Darwin" ]; then
+        echo "darwin"
+    elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
+        echo "linux"
+    fi
+}
+
+faketty() {
+    case $(platform) in
+        darwin)
+            script -q /dev/null "$@"
+            ;;
+        linux)
+            script -qfc "$(printf "%q " "$@")" /dev/null
+            ;;
+    esac
+}
+
+env() {
+    echo "export PATH=\"${PATH}\""
+    if [[ ! -f ${vars_store} ]]; then
+        exit 0
+    fi
+    echo "export UAA_URL=$(int --path /instance_groups/0/jobs/name=uaa/properties/uaa/url)"
+    echo "export UAA_CA_CERT='$(cat $(ca_cert))'"
+    echo "export UAA_CA_CERT_FILE='$(ca_cert)'"
+}
+
+_ensure_cf_cli_installed() {
+    local version=$(grep cf ${repo_root}/.versions | cut -d= -f2)
+    local cli_path=${repo_root}/bin/cf
+
+    if ! ( [ -f ${cli_path} ] && ${cli_path} --version | head -n 1 | grep ${version} > /dev/null); then
+      (>&2 echo "installing cf cli '${version}' into: ${repo_root}/bin/")
+      pushd $(mktemp -d)
+      if [ "$(platform)" == "darwin" ]; then
+          local url="https://packages.cloudfoundry.org/stable?release=macosx64-binary&version=${version}&source=github-rel"
+          curl -s -L >cf.tgz "${url}-${version}-darwin-amd64"
+          tar xfz cf.tgz
+          chmod +x cf
+          mv cf ${repo_root}/bin/
+      else
+          local url="https://packages.cloudfoundry.org/stable?release=linux64-binary&version=${version}&source=github-rel"
+          curl -s -L >cf.tgz "${url}-${version}-linux-amd64"
+          tar xfz cf.tgz
+          chmod +x cf
+          mv cf ${repo_root}/bin/
+      fi
+      popd
+    fi
+}
+
+_ensure_bosh_cli_installed() {
+    local url="https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli"
+    local version=$(grep bosh ${repo_root}/.versions | cut -d= -f2)
+    local cli_path=${repo_root}/bin/bosh
+
+    if ! ( [ -f ${cli_path} ] && ${cli_path} --version | head -n 1 | grep ${version} > /dev/null); then
+
+      (>&2 echo "installing bosh cli '${version}' into: ${repo_root}/bin/")
+      pushd $(mktemp -d)
+      if [ "$(platform)" == "darwin" ]; then
+          curl -s -L >bosh "${url}-${version}-darwin-amd64"
+          chmod +x bosh
+          mv bosh ${repo_root}/bin/
+      else
+          curl -s -L >bosh "${url}-${version}-linux-amd64"
+          chmod +x bosh
+          mv bosh ${repo_root}/bin/
+      fi
+      popd
+    fi
+}
+
+_ensure_uaa_cli_installed() {
+    local url="https://github.com/starkandwayne/uaa-cli-releases/releases/download"
+    local version=$(grep uaa= ${repo_root}/.versions | cut -d= -f2)
+    local cli_path=${repo_root}/bin/uaa
+
+    if ! ( [ -f ${cli_path} ] && ${cli_path} version | head -n 1 | grep ${version} > /dev/null); then
+      (>&2 echo "installing uaa cli '${version}' into: ${repo_root}/bin/")
+      pushd $(mktemp -d)
+      curl -s -L >uaa "${url}/v${version}/uaa-$(platform)-amd64"
+      chmod +x uaa
+      mv uaa ${repo_root}/bin/
+      popd
+    fi
+}
+
+_ensure_cf_cli_installed
+_ensure_bosh_cli_installed
+_ensure_uaa_cli_installed
+case "$1" in
+    up)
+        shift
+        bosh_args=""
+        while [[ $# -gt 0 ]]; do
+            case "$1" in
+                -h|--help|help)
+                    up_usage
+                    exit 0
+                    ;;
+                *)
+                    echo ${1#*--} >> ${state}/flags
+            esac
+            shift
+        done
+        normalize_flags
+
+        up ${bosh_args}
+        ;;
+
+    down)
+        shift
+        bosh_args=""
+        while [[ $# -gt 0 ]]; do
+            case "$1" in
+                -h|--help|help)
+                    down_usage
+                    exit 0
+                    ;;
+                -c|--clean|clean)
+                    down
+                    clean
+                    exit 0
+                    ;;
+                --var=*|--var-file=*)
+                    bosh_args="${bosh_args} ${1}"
+                    ;;
+            esac
+            shift
+        done
+        down ${bosh_args}
+        ;;
+
+    clean)
+        clean "$@"
+        ;;
+
+    env)
+        env "$@"
+        ;;
+
+    vars)
+        vars "$@"
+        ;;
+
+    info)
+        info "$@"
+        ;;
+
+    auth-client)
+        _uaa_auth_client "$@"
+        ;;
+
+    ssh)
+        shift
+        _ssh "$@"
+        ;;
+
+    int)
+        shift
+        int "$@"
+        ;;
+
+    *)
+        usage
+        exit 1
+        ;;
+esac
