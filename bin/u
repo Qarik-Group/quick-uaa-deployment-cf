@@ -1,12 +1,13 @@
 #!/bin/bash
 repo_root=$(dirname $(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd))
 
+set -eu
+
 project_root=${UAADEPLOY_PROJECT_ROOT:-${repo_root}}
 state=${UAADEPLOY_STATE_ROOT:-${project_root}/state}
 vars_file=${UAADEPLOY_VARS_FILE:-${project_root}/vars.yml}
 vars_store=${UAADEPLOY_VARS_STORE:-${state}/creds.yml}
 
-state_arg="--state ${state_json_path}"
 vars_store_arg="--vars-store ${vars_store}"
 
 mkdir -p ${state}
@@ -25,6 +26,48 @@ pushd () {
 
 popd () {
     command popd "$@" > /dev/null
+}
+
+platform() {
+    if [ "$(uname)" == "Darwin" ]; then
+        echo "darwin"
+    elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
+        echo "linux"
+    fi
+}
+
+faketty() {
+    case $(platform) in
+        darwin)
+            script -q /dev/null "$@"
+            ;;
+        linux)
+            script -qfc "$(printf "%q " "$@")" /dev/null
+            ;;
+    esac
+}
+
+vars_file() {
+    local state_vars=${state}/vars.yml
+    bosh int $vars_file > $state_vars
+    echo $state_vars
+}
+
+normalize_flags() (
+    if [ -f ${state}/flags ]; then
+        cat ${state}/flags | sort | uniq > ${state}/flags.tmp && mv ${state}/flags{.tmp,}
+    fi
+)
+
+ca_cert() {
+    local tmp=$(mktemp -d) # temp fix for https://github.com/cloudfoundry/cf-uaac/issues/60
+    local ca_cert_file="${tmp}/ca.pem"
+    store_int --path /default_ca/ca > $ca_cert_file
+    echo $ca_cert_file
+}
+
+appname() {
+  echo "uaa"
 }
 
 usage() {
@@ -49,23 +92,23 @@ down_usage() {
     echo "  -c | --clean  cleans up your enviroment by removing state files"
 }
 
-platform() {
-    if [ "$(uname)" == "Darwin" ]; then
-        echo "darwin"
-    elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
-        echo "linux"
-    fi
+up() {
+    echo $(war_path)
+    # cf push $(appname) -f ${project_root}/src/manifest.yml --no-start \
+    #   --vars-file $(vars_file) \
+    #   --var war_path=$(war_path)
+
+    # cf set-env $(appname)
 }
 
-faketty() {
-    case $(platform) in
-        darwin)
-            script -q /dev/null "$@"
-            ;;
-        linux)
-            script -qfc "$(printf "%q " "$@")" /dev/null
-            ;;
-    esac
+down() {
+    if [ ! -e $vars_file ]; then
+      echo "please deploy the UAA first with 'u up'"
+      exit 1
+    fi
+
+    cf delete $(appname)
+    echo "you can use the clean command if your are planning to use a new cpi or ip"
 }
 
 env() {
@@ -78,8 +121,21 @@ env() {
     echo "export UAA_CA_CERT_FILE='$(ca_cert)'"
 }
 
+war_path() {
+    local version=$(grep "^uaa-server=" ${repo_root}/.versions | cut -d= -f2)
+    local war_path=~/.uaa/server/downloads/uaa-${version}.war
+
+    mkdir -p $(dirname ${war_path})
+    if [[ ! -f ${war_path} ]]; then
+      (>&2 echo "downloading uaa '${version}' into: ~/.uaa/server/downloads/")
+      local url=https://github.com/starkandwayne/uaa-war-releases/releases/download/v${version}/cloudfoundry-identity-uaa-${version}.war
+      curl -s -L -o ${war_path} ${url}
+    fi
+    echo ${war_path}
+}
+
 _ensure_cf_cli_installed() {
-    local version=$(grep cf ${repo_root}/.versions | cut -d= -f2)
+    local version=$(grep "^cf=" ${repo_root}/.versions | cut -d= -f2)
     local cli_path=${repo_root}/bin/cf
 
     if ! ( [ -f ${cli_path} ] && ${cli_path} --version | head -n 1 | grep ${version} > /dev/null); then
@@ -104,7 +160,7 @@ _ensure_cf_cli_installed() {
 
 _ensure_bosh_cli_installed() {
     local url="https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli"
-    local version=$(grep bosh ${repo_root}/.versions | cut -d= -f2)
+    local version=$(grep "^bosh=" ${repo_root}/.versions | cut -d= -f2)
     local cli_path=${repo_root}/bin/bosh
 
     if ! ( [ -f ${cli_path} ] && ${cli_path} --version | head -n 1 | grep ${version} > /dev/null); then
@@ -126,7 +182,7 @@ _ensure_bosh_cli_installed() {
 
 _ensure_uaa_cli_installed() {
     local url="https://github.com/starkandwayne/uaa-cli-releases/releases/download"
-    local version=$(grep uaa= ${repo_root}/.versions | cut -d= -f2)
+    local version=$(grep "^uaa-cli=" ${repo_root}/.versions | cut -d= -f2)
     local cli_path=${repo_root}/bin/uaa
 
     if ! ( [ -f ${cli_path} ] && ${cli_path} version | head -n 1 | grep ${version} > /dev/null); then
