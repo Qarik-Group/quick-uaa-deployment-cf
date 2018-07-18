@@ -71,6 +71,10 @@ appname() {
   echo "uaa"
 }
 
+dbname() {
+  echo "uaa-db"
+}
+
 usage() {
     echo "UAA Deployment CLI v${version:-(development)}"
     echo "  up -- deploys the UAA to Cloud Foundry"
@@ -94,9 +98,10 @@ down_usage() {
 }
 
 up() {
-    cf push $(appname) -f ${project_root}/src/manifest.yml --no-start \
-      --vars-file $(vars_file) \
-      --var war_path=$(war_path)
+    echo $(cf_db_service_key_credentials)
+    # cf push $(appname) -f ${project_root}/src/manifest.yml --no-start \
+    #   --vars-file $(vars_file) \
+    #   --var war_path=$(war_path)
 
     # cf set-env $(appname)
 }
@@ -132,6 +137,33 @@ war_path() {
       curl -s -L -o ${war_path} ${url}
     fi
     echo ${war_path}
+}
+
+cf_current_space_guid() {
+  cat ~/.cf/config.json | jq -r .SpaceFields.GUID
+}
+
+cf_db_service_instance_url() {
+  if [[ ! -f ${state}/service_instance_url ]]; then
+    service_instance=$(cf curl "/v2/spaces/$(cf_current_space_guid)/service_instances?q=name:$(dbname)")
+    if [[ "$(echo "${service_instance}" | jq -r .total_results)" == "0" ]]; then
+      (>&2 echo "Please create PostgreSQL/MySQL service instance named $(dbname)")
+      exit 1
+    fi
+    echo "${service_instance}" | jq -r ".resources[0].metadata.url" > ${state}/service_instance_url
+  fi
+  cat ${state}/service_instance_url
+}
+
+cf_db_service_key_credentials() {
+  service_keys=$(cf curl $(cf_db_service_instance_url)/service_keys)
+  if [[ "$(echo "${service_keys}" | jq -r .total_results)" == "0" ]]; then
+    (>&2 echo "Creating service key for service instance $(dbname)")
+    cf create-service-key $(dbname) $(dbname) >&2
+    service_keys=$(cf curl $(cf_db_service_instance_url)/service_keys)
+  fi
+
+  echo "${service_keys}" | jq -cr ".resources[0].entity.credentials"
 }
 
 _ensure_cf_cli_installed() {
