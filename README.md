@@ -97,6 +97,16 @@ You can assign them to groups (which gives them access to authorized scopes):
 uaa add-member uaa.admin drnic
 ```
 
+## Upgrade UAA
+
+To upgrade, pull the lastest commits from the `master` branch and run `u up` again.
+
+```plain
+cd path/to/uaa-deployment-cf
+git pull
+u up
+```
+
 ## Destroy UAA
 
 To tear down your UAA and its database:
