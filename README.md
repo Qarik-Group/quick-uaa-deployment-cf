@@ -27,7 +27,11 @@ cf target -s uaa-production
 Next, create a PostgreSQL or MySQL database called `uaa-db`:
 
 ```plain
+# PostgreSQL on PWS
 cf create-service elephantsql turtle uaa-db
+
+# MySQL on PWS
+cf create-service cleardb spark uaa-db
 ```
 
 To generate secrets, encyption keys, certificates for your UAA, and deploy the UAA to your Cloud Foundry:
