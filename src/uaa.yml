@@ -31,21 +31,6 @@ oauth:
     - uaa.user
     - uaa.offline_token
 
-delete:
-  clients:
-  - admin
-  - cf
-  - identity
-  - login
-  - notifications
-  - oauth_showcase_authorization_code
-  - oauth_showcase_client_credentials
-  - oauth_showcase_implicit_grant
-  - oauth_showcase_password_grant
-  - oauth_showcase_saml2_bearer
-  - oauth_showcase_user_token
-  - some_client_that_contains_redirect_uri_matching_request_param
-
 jwt:
   token:
     policy:

@@ -13,6 +13,7 @@ vars_store_arg="--vars-store ${vars_store}"
 mkdir -p ${state}
 tmp=$(mktemp -d)
 trap "rm -fr ${tmp}" EXIT
+trap "[[ -s $vars_file ]] || { rm $vars_file; exit 1; }" EXIT
 var_cache="${tmp}/vars_cache.yml"
 int_cache="${tmp}/int_cache.yml"
 
@@ -49,7 +50,7 @@ faketty() {
 
 validate_vars_file() {
     if [ ! -e $vars_file ]; then
-      cp ${project_root}/src/vars.yml $vars_file
+      eval "echo \"$(<src/vars.tmpl)\"" > $vars_file
     fi
 }
 
@@ -89,12 +90,13 @@ usage() {
 }
 
 up_usage() {
-    echo "$(ls ${repo_root}/ops/flags | cut -d "." -f 1 | sed 's/^/  --/')"
-    echo ""
+    echo "  --route login.mycompany.com | Seed the route to be used for UAA"
+    echo
 }
 
 down_usage() {
     echo "  -f | Force deletion without confirmation"
+    echo
 }
 
 up() {
@@ -311,14 +313,16 @@ case "${1:-usage}" in
                     up_usage
                     exit 0
                     ;;
-                *)
-                    echo ${1#*--} >> ${state}/flags
+                --route)
+                    shift
+                    route=$1 # used in src/vars.tmpl
+                    ;;
             esac
             shift
         done
         validate_vars_file
 
-        up ${bosh_args}
+        up
         ;;
 
     down)
