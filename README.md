@@ -6,7 +6,16 @@ This project is derived from UAA's own suggestions for how to run the UAA on Clo
 
 The name of the helper application is `u`. This name matches the sister project's helper name. This name in turn came from the project [BUCC](https://github.com/starkandwayne/bucc), with its helper app `bucc`, which stood for BOSH-UAA-CredHub-Concourse. Since this project only deploys the UAA, we appropriately shorten the helper name to `u`.
 
+## Deploy UAA
+
 To bootstrap a secure, production-grade UAA to any Cloud Foundry:
+
+First, clone this repo.
+
+```plain
+git https://github.com/starkandwayne/uaa-deployment-cf
+cd uaa-deployment-cf
+```
 
 If you have `direnv` installed, you will be asked to `direnv allow` and then you will see the dependent CLIs (`cf`, `uaa`, and `bosh`) downloaded into the `bin/` folder.
 
