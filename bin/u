@@ -117,7 +117,8 @@ down() {
     fi
 
     cf delete $(appname)
-    echo "you can use the clean command if your are planning to use a new cpi or ip"
+    cf delete-service-key $(dbname) $(dbname)
+    echo "\nYou can use the clean command if your are planning to use a new cpi or ip"
 }
 
 vars() {

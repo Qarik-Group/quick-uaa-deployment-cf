@@ -1,6 +1,6 @@
 - type: replace
   path: /spring_profiles?
-  value: postgresql,default
+  value: postgresql
 
 - type: replace
   path: /database?
