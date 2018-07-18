@@ -99,9 +99,9 @@ down_usage() {
 
 up() {
     (>&2 echo "Creating application...")
-    # cf push "$(appname)" -f ${project_root}/src/manifest.yml --no-start \
-    #   --vars-file "$(vars_file)" \
-    #   --var war_path=$(war_path)
+    cf push "$(appname)" -f ${project_root}/src/manifest.yml --no-start \
+      --vars-file "$(vars_file)" \
+      --var war_path=$(war_path)
 
     (>&2 echo "Setting uaa.yml configuration...")
     cf set-env "$(appname)" UAA_CONFIG_YAML "$(uaa_yml)"
@@ -185,6 +185,7 @@ cf_db_service_vars() {
   port=${BASH_REMATCH[10]}
   dbname=${BASH_REMATCH[11]}
   cat <<-YAML
+db_scheme: ${scheme}
 db_username: ${username}
 db_password: ${password}
 db_host: ${hostname}
@@ -194,11 +195,13 @@ YAML
 }
 
 uaa_yml() {
+  service_vars=$(cf_db_service_vars)
+  db_file=src/db/$(echo "$service_vars" | bosh int - --path /db_scheme).yml
   bosh int ${project_root}/src/uaa.yml \
-      -l <(cf_db_service_vars) \
+      -l <(echo "$service_vars") \
       -l $(vars_file) \
       --vars-store ${state}/creds.yml \
-      -o src/db/postgresql.yml
+      -o ${db_file}
 }
 
 _ensure_cf_cli_installed() {
