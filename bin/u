@@ -101,6 +101,7 @@ down_usage() {
 }
 
 up() {
+    _check_cf_target
     cf_db_service_instance_url > /dev/null
 
     (>&2 echo "Creating application...")
@@ -120,6 +121,7 @@ down() {
       echo "please deploy the UAA first with 'u up'"
       exit 1
     fi
+    _check_cf_target
     cf delete "$(appname)" "$@"
     cf delete-service-key "$(dbname)" "$(dbname)" "$@"
     cf delete-service "$(dbname)" "$@"
@@ -255,6 +257,10 @@ uaa_int() {
 
 store_uaa_int() {
     bosh int $vars_store "$@"
+}
+
+_check_cf_target() {
+    cf target
 }
 
 _ensure_cf_cli_installed() {
