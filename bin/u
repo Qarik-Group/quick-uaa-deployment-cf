@@ -94,7 +94,7 @@ up_usage() {
 }
 
 down_usage() {
-    echo "  -c | --clean  cleans up your enviroment by removing state files"
+    echo "  -f | Force deletion without confirmation"
 }
 
 up() {
@@ -115,10 +115,9 @@ down() {
       echo "please deploy the UAA first with 'u up'"
       exit 1
     fi
-
-    cf delete $(appname)
-    cf delete-service-key $(dbname) $(dbname)
-    echo "\nYou can use the clean command if your are planning to use a new cpi or ip"
+    cf delete "$(appname)" "$@"
+    cf delete-service-key "$(dbname)" "$(dbname)" "$@"
+    cf delete-service "$(dbname)" "$@"
 }
 
 vars() {
@@ -306,7 +305,6 @@ _ensure_uaa_cli_installed
 case "${1:-usage}" in
     up)
         shift
-        bosh_args=""
         while [[ $# -gt 0 ]]; do
             case "$1" in
                 -h|--help|help)
@@ -325,40 +323,32 @@ case "${1:-usage}" in
 
     down)
         shift
-        bosh_args=""
-        while [[ $# -gt 0 ]]; do
-            case "$1" in
-                -h|--help|help)
-                    down_usage
-                    exit 0
-                    ;;
-                -c|--clean|clean)
-                    down
-                    clean
-                    exit 0
-                    ;;
-                --var=*|--var-file=*)
-                    bosh_args="${bosh_args} ${1}"
-                    ;;
-            esac
-            shift
-        done
-        down ${bosh_args}
+        case "$1" in
+            -h|--help|help)
+                down_usage
+                exit 0
+                ;;
+        esac
+        down "$@"
         ;;
 
     clean)
+        shift
         clean "$@"
         ;;
 
     env)
+        shift
         env "$@"
         ;;
 
     vars)
+        shift
         vars "$@"
         ;;
 
     info)
+        shift
         info "$@"
         ;;
 
