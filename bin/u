@@ -13,7 +13,7 @@ vars_store_arg="--vars-store ${vars_store}"
 mkdir -p ${state}
 tmp=$(mktemp -d)
 trap "rm -fr ${tmp}" EXIT
-trap "[[ -s $vars_file ]] || { rm $vars_file; exit 1; }" EXIT
+trap "[[ -s $vars_file ]] || { rm -f $vars_file; }" EXIT
 var_cache="${tmp}/vars_cache.yml"
 int_cache="${tmp}/int_cache.yml"
 
@@ -95,11 +95,14 @@ up_usage() {
 }
 
 down_usage() {
-    echo "  -f | Force deletion without confirmation"
+    echo "  -f |          Force deletion without confirmation"
+    echo "  -c | --clean  Cleans up your enviroment by removing state files"
     echo
 }
 
 up() {
+    cf_db_service_instance_url > /dev/null
+
     (>&2 echo "Creating application...")
     cf push "$(appname)" -f ${project_root}/src/manifest.yml --no-start \
       --vars-file "$(vars_file)" \
@@ -122,6 +125,16 @@ down() {
     cf delete-service "$(dbname)" "$@"
 }
 
+clean() {
+  if curl -m 3 -H 'Accept: application/json' -k -s "$(public_url)/login" | grep version &>/dev/null ; then
+    echo "Your UAA enviroment is still running, please tear it down with 'u down --clean'"
+    exit 1
+  fi
+  rm -rf ${state}
+  mv ${vars_file} ${vars_file}.bck
+  echo "'state' dir has been cleaned and 'vars.yml' has been moved to 'vars.yml.bck'"
+}
+
 vars() {
     cat $(vars_file)
 }
@@ -134,19 +147,23 @@ get_var() {
     bosh int ${var_cache} --path "/$path"
 }
 
+public_url() {
+    echo "https://$(get_var route)"
+}
+
 env() {
     echo "export PATH=\"${PATH}\""
     if [[ ! -f ${vars_store} ]]; then
         exit 0
     fi
-    echo "export UAA_URL=https://$(get_var route)"
+    echo "export UAA_URL=$(public_url)"
     echo "export UAA_CA_CERT='$(cat $(ca_cert))'"
     echo "export UAA_CA_CERT_FILE='$(ca_cert)'"
 }
 
 info() {
     echo "UAA:"
-    echo "  url: https://$(get_var route)"
+    echo "  url: $(public_url)"
     echo "  client: uaa_admin"
     echo "  client_secret: $(store_uaa_int --path /admin_client_secret)"
     echo "  username: admin"
@@ -306,7 +323,7 @@ _ensure_jq_cli_installed() {
     local url="https://github.com/stedolan/jq/releases/download/jq-${version}/"
     local cli_path=${repo_root}/bin/jq
 
-    if ! ( [ -f ${cli_path} ] && ${cli_path} version | head -n 1 | grep ${version} > /dev/null); then
+    if ! ( [ -f ${cli_path} ] && ${cli_path} --version | head -n 1 | grep ${version} > /dev/null); then
         (>&2 echo "installing jq cli '${version}' into: ${repo_root}/bin/")
         pushd $(mktemp -d)
         if [ "$(platform)" == "darwin" ]; then
@@ -347,9 +364,15 @@ case "${1:-usage}" in
 
     down)
         shift
-        case "$1" in
+        case "${1:-}" in
             -h|--help|help)
                 down_usage
+                exit 0
+                ;;
+            -c|--clean|clean)
+                shift
+                down "$@"
+                clean
                 exit 0
                 ;;
         esac
