@@ -42,6 +42,14 @@ u up --route drnic-uaa-production.cfapps.io
 
 Note, the `u up` command can be run in future to upgrade. The flags provided above will be cached in `vars.yml` and not be required to be provided again.
 
+Once deployed, visit the UAA home page for users to login https://drnic-uaa-production.cfapps.io (for your route).
+
+You can see the generated `uaa_admin` client secret, and complimentary `admin` user:
+
+```plain
+$ u info
+```
+
 To target and authorize the [`uaa` CLI](https://github.com/cloudfoundry-incubator/uaa-cli):
 
 ```plain
@@ -77,7 +85,7 @@ uaa create-user drnic \
 You can assign them to groups (which gives them access to authorized scopes):
 
 ```plain
-uaa add-member some.group drnic
+uaa add-member uaa.admin drnic
 ```
 
 ## Destroy UAA
