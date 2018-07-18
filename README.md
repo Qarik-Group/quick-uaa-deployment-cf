@@ -50,3 +50,11 @@ To use the `u` and `uaa` CLIs anywhere, source the `u env` output:
 source <(path/to/uaa-deployment-cf/bin/u env)
 uaa clients
 ```
+
+## Destroy UAA
+
+To tear down your UAA and its database:
+
+```plain
+u down
+```
