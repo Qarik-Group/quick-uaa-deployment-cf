@@ -63,7 +63,7 @@ vars_file() {
 ca_cert() {
     local tmp=$(mktemp -d) # temp fix for https://github.com/cloudfoundry/cf-uaac/issues/60
     local ca_cert_file="${tmp}/ca.pem"
-    store_int --path /default_ca/ca > $ca_cert_file
+    store_uaa_int --path /default_ca/ca > $ca_cert_file
     echo $ca_cert_file
 }
 
@@ -120,14 +120,35 @@ down() {
     echo "you can use the clean command if your are planning to use a new cpi or ip"
 }
 
+vars() {
+    cat $(vars_file)
+}
+
+get_var() {
+    path=$1
+    if [[ ! -s ${var_cache} ]]; then
+        vars > ${var_cache}
+    fi
+    bosh int ${var_cache} --path "/$path"
+}
+
 env() {
     echo "export PATH=\"${PATH}\""
     if [[ ! -f ${vars_store} ]]; then
         exit 0
     fi
-    echo "export UAA_URL=$(int --path /instance_groups/0/jobs/name=uaa/properties/uaa/url)"
+    echo "export UAA_URL=https://$(get_var route)"
     echo "export UAA_CA_CERT='$(cat $(ca_cert))'"
     echo "export UAA_CA_CERT_FILE='$(ca_cert)'"
+}
+
+info() {
+    echo "UAA:"
+    echo "  url: https://$(get_var route)"
+    echo "  client: uaa_admin"
+    echo "  client_secret: $(store_uaa_int --path /admin_client_secret)"
+    echo "  username: admin"
+    echo "  password: $(store_uaa_int --path /admin_user_password)"
 }
 
 war_path() {
@@ -204,6 +225,14 @@ uaa_yml() {
       -o ${db_file}
 }
 
+uaa_int() {
+    bosh int <(uaa_yml) "$@"
+}
+
+store_uaa_int() {
+    bosh int $vars_store "$@"
+}
+
 _ensure_cf_cli_installed() {
     local version=$(grep "^cf=" ${repo_root}/.versions | cut -d= -f2)
     local cli_path=${repo_root}/bin/cf
@@ -268,7 +297,7 @@ _ensure_uaa_cli_installed() {
 _ensure_cf_cli_installed
 _ensure_bosh_cli_installed
 _ensure_uaa_cli_installed
-case "$1" in
+case "${1:-usage}" in
     up)
         shift
         bosh_args=""
@@ -338,7 +367,7 @@ case "$1" in
 
     int)
         shift
-        int "$@"
+        uaa_int "$@"
         ;;
 
     *)
