@@ -47,17 +47,18 @@ faketty() {
     esac
 }
 
+validate_vars_file() {
+    if [ ! -e $vars_file ]; then
+      cp ${project_root}/src/vars.yml $vars_file
+    fi
+}
+
 vars_file() {
+
     local state_vars=${state}/vars.yml
     bosh int $vars_file > $state_vars
     echo $state_vars
 }
-
-normalize_flags() (
-    if [ -f ${state}/flags ]; then
-        cat ${state}/flags | sort | uniq > ${state}/flags.tmp && mv ${state}/flags{.tmp,}
-    fi
-)
 
 ca_cert() {
     local tmp=$(mktemp -d) # temp fix for https://github.com/cloudfoundry/cf-uaac/issues/60
@@ -93,10 +94,9 @@ down_usage() {
 }
 
 up() {
-    echo $(war_path)
-    # cf push $(appname) -f ${project_root}/src/manifest.yml --no-start \
-    #   --vars-file $(vars_file) \
-    #   --var war_path=$(war_path)
+    cf push $(appname) -f ${project_root}/src/manifest.yml --no-start \
+      --vars-file $(vars_file) \
+      --var war_path=$(war_path)
 
     # cf set-env $(appname)
 }
@@ -213,7 +213,7 @@ case "$1" in
             esac
             shift
         done
-        normalize_flags
+        validate_vars_file
 
         up ${bosh_args}
         ;;

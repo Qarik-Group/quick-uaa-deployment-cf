@@ -1,0 +1,13 @@
+---
+applications:
+- name: uaa
+  memory: 1024M
+  instances: 1
+  random-route: false
+  path: ((war_path))
+  routes:
+  - route: ((route))
+  env:
+    UAA_URL: http://((route))
+    LOGIN_URL: http://((route))
+    JBP_CONFIG_SPRING_AUTO_RECONFIGURATION: '{enabled: true}'
