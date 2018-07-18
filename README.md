@@ -46,13 +46,38 @@ To target and authorize the [`uaa` CLI](https://github.com/cloudfoundry-incubato
 
 ```plain
 u auth-client
+
+uaa clients
+uaa users
+uaa groups
 ```
 
 To use the `u` and `uaa` CLIs anywhere, source the `u env` output:
 
 ```plain
 source <(path/to/uaa-deployment-cf/bin/u env)
+
 uaa clients
+uaa users
+uaa groups
+```
+
+## Create Users
+
+For each staff member you can easily create a new UAA user:
+
+```plain
+uaa create-user drnic \
+  --email drnic@starkandwayne.com \
+  --givenName "Dr Nic" \
+  --familyName "Williams" \
+  --password drnic_secret
+```
+
+You can assign them to groups (which gives them access to authorized scopes):
+
+```plain
+uaa add-member some.group drnic
 ```
 
 ## Destroy UAA
