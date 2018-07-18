@@ -301,9 +301,29 @@ _ensure_uaa_cli_installed() {
     fi
 }
 
+_ensure_jq_cli_installed() {
+    local version=$(grep "^jq=" ${repo_root}/.versions | cut -d= -f2)
+    local url="https://github.com/stedolan/jq/releases/download/jq-${version}/"
+    local cli_path=${repo_root}/bin/jq
+
+    if ! ( [ -f ${cli_path} ] && ${cli_path} version | head -n 1 | grep ${version} > /dev/null); then
+        (>&2 echo "installing jq cli '${version}' into: ${repo_root}/bin/")
+        pushd $(mktemp -d)
+        if [ "$(platform)" == "darwin" ]; then
+            curl -s -L >jq "${url}/jq-osx-amd64"
+        else
+            curl -s -L >jq "${url}/jq-linux64"
+        fi
+        chmod +x jq
+        mv jq ${repo_root}/bin/
+      popd
+    fi
+}
+
 _ensure_cf_cli_installed
 _ensure_bosh_cli_installed
 _ensure_uaa_cli_installed
+_ensure_jq_cli_installed
 case "${1:-usage}" in
     up)
         shift

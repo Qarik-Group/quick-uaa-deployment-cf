@@ -6,5 +6,6 @@ tmp
 /bin/bosh
 /bin/uaa
 /bin/cf
+/bin/jq
 /vars.yml
 /vars.yml.bck
