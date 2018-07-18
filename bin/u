@@ -98,12 +98,16 @@ down_usage() {
 }
 
 up() {
-    echo $(cf_db_service_key_credentials)
-    # cf push $(appname) -f ${project_root}/src/manifest.yml --no-start \
-    #   --vars-file $(vars_file) \
+    (>&2 echo "Creating application...")
+    # cf push "$(appname)" -f ${project_root}/src/manifest.yml --no-start \
+    #   --vars-file "$(vars_file)" \
     #   --var war_path=$(war_path)
 
-    # cf set-env $(appname)
+    (>&2 echo "Setting uaa.yml configuration...")
+    cf set-env "$(appname)" UAA_CONFIG_YAML "$(uaa_yml)"
+
+    (>&2 echo "Starting application...")
+    cf restart "$(appname)"
 }
 
 down() {
@@ -164,6 +168,37 @@ cf_db_service_key_credentials() {
   fi
 
   echo "${service_keys}" | jq -cr ".resources[0].entity.credentials"
+}
+
+cf_db_service_vars() {
+  uri=$(cf_db_service_key_credentials | jq -r ".uri")
+  pattern='^(([a-z]+)://)?((([^:\/]+)(:([^@\/]*))?@)?([^:\/?]+)(:([0-9]+))?)\/?([^?]*)?(\?[^#]*)?(#.*)?$'
+  [[ "$uri" =~ $pattern ]] || {
+    (>&2 echo "Could not parse database URI: '$uri}'")
+    exit 1
+  }
+  scheme=${BASH_REMATCH[2]}
+  [[ "${scheme}" == "postgres" ]] && { scheme="postgresql"; }
+  username=${BASH_REMATCH[5]}
+  password=${BASH_REMATCH[7]}
+  hostname=${BASH_REMATCH[8]}
+  port=${BASH_REMATCH[10]}
+  dbname=${BASH_REMATCH[11]}
+  cat <<-YAML
+db_username: ${username}
+db_password: ${password}
+db_host: ${hostname}
+db_port: ${port}
+db_name: ${dbname}
+YAML
+}
+
+uaa_yml() {
+  bosh int ${project_root}/src/uaa.yml \
+      -l <(cf_db_service_vars) \
+      -l $(vars_file) \
+      --vars-store ${state}/creds.yml \
+      -o src/db/postgresql.yml
 }
 
 _ensure_cf_cli_installed() {
