@@ -84,6 +84,7 @@ usage() {
     echo "  down -- deletes the UAA app from Cloud Foundry"
     echo "  clean -- start with a clean enviorment - use this only after you've torn down your env"
     echo "  ssh -- ssh into the UAA app instance"
+    echo "  logs -- streaming logs from UAA app instance; pass --recent to see recent logs"
     echo "  env -- sourceable environment variables for cli clients"
     echo "  int -- wrapper for 'bosh int' for the bosh manifest"
     echo "  info -- UAA information"
@@ -189,6 +190,10 @@ info() {
 
 _ssh() {
     cf ssh $(appname)
+}
+
+_logs() {
+    cf logs $(appname) "$@"
 }
 
 _uaa_auth_client() {
@@ -423,6 +428,12 @@ case "${1:-usage}" in
         _ssh "$@"
         ;;
 
+    logs)
+        shift
+        _logs "$@"
+        ;;
+
+    # int - deprecated
     int)
         shift
         uaa_int "$@"
