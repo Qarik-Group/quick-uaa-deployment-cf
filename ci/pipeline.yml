@@ -49,7 +49,9 @@ groups:
   - name: (( grab meta.pipeline ))
     jobs:
       - check-uaa-server
+      - check-uaa-cli
       - check-bosh-cli
+      - check-cf-cli
 
 jobs:
   - name: check-uaa-server
@@ -178,6 +180,131 @@ jobs:
           rebase: true
           repository: git-output
 
+  - name: check-cf-cli
+    public: true
+    serial_groups: ["test-up"]
+    plan:
+    - do:
+      - name: git
+        get: git
+      - name: cf-cli
+        get: cf-cli
+        params: {globs: ['ignore']}
+        trigger: true
+      - name: update-version
+        task: update-version
+        config:
+          platform: linux
+          image_resource:
+            type: docker-image
+            source:
+              repository: (( grab meta.image.name ))
+              tag:        (( grab meta.image.tag ))
+          inputs:
+            - name: git
+            - name: cf-cli
+          outputs:
+            - name: git-output
+            - name: notifications
+          run:
+            path: ./git/ci/scripts/update-version.sh
+            args: []
+          params:
+            RESOURCE_NAME: cf-cli
+            ENTITY_NAME: cf
+            GIT_EMAIL: (( grab meta.git.email ))
+            GIT_NAME:  (( grab meta.git.name ))
+      - name: test-up
+        task: test-up
+        config:
+          platform: linux
+          image_resource:
+            type: docker-image
+            source:
+              repository: (( grab meta.image.name ))
+              tag:        (( grab meta.image.tag ))
+          inputs:
+            - name: git
+            - name: git-output
+          run:
+            path: ./git/ci/scripts/test-up.sh
+            args: []
+          params:
+            REPO_ROOT: git-output
+            CF_URL: (( grab meta.cf.url ))
+            CF_USERNAME: (( grab meta.cf.username ))
+            CF_PASSWORD: (( grab meta.cf.password ))
+            CF_ORGANIZATION: (( grab meta.cf.organization ))
+            CF_SPACE: (( grab meta.cf.space ))
+            CF_TEST_ROUTE: (( grab meta.cf.test_route ))
+      - name: upload-git
+        put: git
+        params:
+          rebase: true
+          repository: git-output
+
+  - name: check-uaa-cli
+    public: true
+    serial_groups: ["test-up"]
+    plan:
+    - do:
+      - name: git
+        get: git
+      - name: uaa-cli
+        get: uaa-cli
+        params: {globs: ['ignore']}
+        trigger: true
+      - name: update-version
+        task: update-version
+        config:
+          platform: linux
+          image_resource:
+            type: docker-image
+            source:
+              repository: (( grab meta.image.name ))
+              tag:        (( grab meta.image.tag ))
+          inputs:
+            - name: git
+            - name: uaa-cli
+          outputs:
+            - name: git-output
+            - name: notifications
+          run:
+            path: ./git/ci/scripts/update-version.sh
+            args: []
+          params:
+            ENTITY_NAME: uaa-cli
+            GIT_EMAIL: (( grab meta.git.email ))
+            GIT_NAME:  (( grab meta.git.name ))
+      - name: test-up
+        task: test-up
+        config:
+          platform: linux
+          image_resource:
+            type: docker-image
+            source:
+              repository: (( grab meta.image.name ))
+              tag:        (( grab meta.image.tag ))
+          inputs:
+            - name: git
+            - name: git-output
+          run:
+            path: ./git/ci/scripts/test-up.sh
+            args: []
+          params:
+            REPO_ROOT: git-output
+            CF_URL: (( grab meta.cf.url ))
+            CF_USERNAME: (( grab meta.cf.username ))
+            CF_PASSWORD: (( grab meta.cf.password ))
+            CF_ORGANIZATION: (( grab meta.cf.organization ))
+            CF_SPACE: (( grab meta.cf.space ))
+            CF_TEST_ROUTE: (( grab meta.cf.test_route ))
+      - name: upload-git
+        put: git
+        params:
+          rebase: true
+          repository: git-output
+
       # on_failure:
       #   put: notify
       #   params:
@@ -212,6 +339,20 @@ resources:
     source:
       user:         cloudfoundry
       repository:   bosh-cli
+      access_token: (( grab meta.github.access_token ))
+
+  - name: cf-cli
+    type: github-release
+    source:
+      user:         cloudfoundry
+      repository:   cli
+      access_token: (( grab meta.github.access_token ))
+
+  - name: uaa-cli
+    type: github-release
+    source:
+      user:         starkandwayne
+      repository:   uaa-cli-releases
       access_token: (( grab meta.github.access_token ))
 
   # - name: notify
