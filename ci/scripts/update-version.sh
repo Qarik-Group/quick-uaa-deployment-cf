@@ -17,7 +17,6 @@ pushd git-output
 
 sed -i "s/.*${ENTITY_NAME}.*/${ENTITY_NAME}=$ENTITY_VERSION/" .versions
 
-git merge --no-edit ${BRANCH}
 git add -A
 git status
 git commit -m "bump ${ENTITY_NAME} v${ENTITY_VERSION}"
