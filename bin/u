@@ -108,7 +108,7 @@ up() {
 
     (>&2 echo)
     (>&2 echo "Check DB service instance...")
-    cf_db_service_instance_url > /dev/null
+    cf_db_service_vars_file > /dev/null
 
     (>&2 echo)
     (>&2 echo "Check composition of UAA YAML configuration...")
