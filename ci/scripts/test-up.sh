@@ -7,6 +7,8 @@ cd ${REPO_ROOT:?required}
 source <(bin/u env)
 
 u_down() {
+  set +e
+  cf logs uaa --recent
   echo
   echo
   echo "Cleaning up..."
