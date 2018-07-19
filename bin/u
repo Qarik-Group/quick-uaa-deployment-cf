@@ -17,6 +17,8 @@ trap "[[ -s $vars_file ]] || { rm -f $vars_file; }" EXIT
 var_cache="${tmp}/vars_cache.yml"
 int_cache="${tmp}/int_cache.yml"
 
+uaa_yml_base="${repo_root}/src/uaa.yml"
+
 PATH=${repo_root}/bin:${PATH}
 
 version=$(grep uaa-deployment ${repo_root}/.versions | cut -d= -f2)
@@ -217,21 +219,22 @@ cf_db_service_key_uri() {
   bosh int <(echo "${service_keys}") --path /resources/0/entity/credentials/uri
 }
 
-cf_db_service_vars() {
-  uri=$(cf_db_service_key_uri)
-  pattern='^(([a-z]+)://)?((([^:\/]+)(:([^@\/]*))?@)?([^:\/?]+)(:([0-9]+))?)\/?([^?]*)?(\?[^#]*)?(#.*)?$'
-  [[ "$uri" =~ $pattern ]] || {
-    (>&2 echo "Could not parse database URI: '$uri}'")
-    exit 1
-  }
-  scheme=${BASH_REMATCH[2]}
-  [[ "${scheme}" == "postgres" ]] && { scheme="postgresql"; }
-  username=${BASH_REMATCH[5]}
-  password=${BASH_REMATCH[7]}
-  hostname=${BASH_REMATCH[8]}
-  port=${BASH_REMATCH[10]}
-  dbname=${BASH_REMATCH[11]}
-  cat <<-YAML
+cf_db_service_vars_file() {
+    if [[ ! -f ${state}/cf_db_service_vars.yml ]]; then
+        uri=$(cf_db_service_key_uri)
+        pattern='^(([a-z]+)://)?((([^:\/]+)(:([^@\/]*))?@)?([^:\/?]+)(:([0-9]+))?)\/?([^?]*)?(\?[^#]*)?(#.*)?$'
+        [[ "$uri" =~ $pattern ]] || {
+            (>&2 echo "Could not parse database URI: '$uri}'")
+            exit 1
+        }
+        scheme=${BASH_REMATCH[2]}
+        [[ "${scheme}" == "postgres" ]] && { scheme="postgresql"; }
+        username=${BASH_REMATCH[5]}
+        password=${BASH_REMATCH[7]}
+        hostname=${BASH_REMATCH[8]}
+        port=${BASH_REMATCH[10]}
+        dbname=${BASH_REMATCH[11]}
+        cat > ${state}/cf_db_service_vars.yml <<-YAML
 db_scheme: ${scheme}
 db_username: ${username}
 db_password: ${password}
@@ -239,16 +242,28 @@ db_host: ${hostname}
 db_port: ${port}
 db_name: ${dbname}
 YAML
+    fi
+    echo "${state}/cf_db_service_vars.yml"
 }
 
 uaa_yml() {
-  service_vars=$(cf_db_service_vars)
-  db_file=src/db/$(echo "$service_vars" | bosh int - --path /db_scheme).yml
-  bosh int ${project_root}/src/uaa.yml \
-      -l <(echo "$service_vars") \
-      -l $(vars_file) \
-      --vars-store ${state}/creds.yml \
-      -o ${db_file}
+  bosh int $(uaa_int_args)
+}
+
+uaa_int_args() {
+    local ops_files=()
+
+    vars_file_arg="-l $(vars_file) -l $(cf_db_service_vars_file)"
+
+    # Database selection from service instance
+    ops_files+=(${repo_root}/src/db/$(cat $(cf_db_service_vars_file) | bosh int - --path /db_scheme).yml)
+
+    if [[ -d ${project_root}/operators ]]; then
+        ops_files+=(${project_root}/operators/*.yml)
+    fi
+
+    ops_file_args=$(printf '%s\n' "${ops_files[@]}" | sed 's|\(.*\)/|\1@|' | sort -t@ -k2 | sed 's|@|/|' | sed 's/^/-o /' | xargs)
+    echo "${uaa_yml_base} ${ops_file_args} ${vars_store_arg} ${vars_file_arg}"
 }
 
 uaa_int() {
