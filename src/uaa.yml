@@ -38,7 +38,6 @@ jwt:
   token:
     refresh:
       format: opaque
-      restrict_grant: true
     policy:
       accessTokenValiditySeconds: 43200
       refreshTokenValiditySeconds: 2592000
