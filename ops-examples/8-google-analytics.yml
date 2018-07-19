@@ -1,0 +1,5 @@
+- type: replace
+  path: /analytics?
+  value:
+    code: ((google_analytics_code))
+    domain: ((domain))
