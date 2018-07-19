@@ -1,0 +1,93 @@
+---
+meta:
+  name:     (( param "Please name your pipeline" ))
+  target:   (( param "Please identify the name of the target Concourse CI" ))
+  url:      (( param "Please specify the full url of the target Concourse CI" ))
+  pipeline: (( grab meta.name ))
+
+  image:
+    name: starkandwayne/concourse-java
+    tag: "8"
+
+  aws:
+    bucket:     (( grab meta.pipeline ))
+    region_name: us-east-1
+    access_key: (( param "Please set your AWS Access Key ID for your pipeline S3 Bucket" ))
+    secret_key: (( param "Please set your AWS Secret Key ID for your pipeline S3 Bucket" ))
+
+  github:
+    uri:          (( concat "git@github.com:" meta.github.owner "/" meta.github.repo ))
+    owner:        (( param "Please specify the name of the user / organization that owns the Github repository" ))
+    repo:         (( param "Please specify the name of the Github repository" ))
+    branch:       develop
+    private_key:  (( param "Please generate an SSH Deployment Key for this repo and specify it here" ))
+    access_token: (( param "Please generate a Personal Access Token to be used for creating github releases (do you have a ci-bot?)" ))
+
+  # slack:
+  #   webhook:       (( param "Please specify your Slack Incoming Webhook Integration URL" ))
+  #   success_moji:  ":airplane_departure:"
+  #   fail_moji:     ":airplane_arriving:"
+  #   upset_moji:    ":sad_panda:"
+  #   channel:       "#uaa"
+  #   username:      starkandwayne-ci
+  #   icon:          https://www.starkandwayne.com/assets/images/shield-blue-50x50.png
+  #   fail_url: '(( concat "<" meta.url "/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME| Concourse Failure! " meta.slack.upset_moji ">" ))'
+
+groups:
+  - name: (( grab meta.pipeline ))
+    jobs:
+      - check-uaa
+
+jobs:
+  - name: check-uaa
+    public: true
+    serial: true
+    plan:
+    - do:
+      - name: git
+        get: git
+      - name: uaa
+        get: uaa-war
+        params: {globs: ['*.war']}
+        trigger: true
+
+      # on_failure:
+      #   put: notify
+      #   params:
+      #     channel:  (( grab meta.slack.channel ))
+      #     username: (( grab meta.slack.username ))
+      #     icon_url: (( grab meta.slack.icon ))
+      #     text:    '(( concat meta.slack.fail_url " " meta.pipeline ": \"build\" job failed" ))'
+
+# resource_types:
+#   - name: slack-notification
+#     type: docker-image
+#     source:
+#       repository: cfcommunity/slack-notification-resource
+
+resources:
+  - name: git
+    type: git
+    source:
+      uri:         (( grab meta.github.uri ))
+      branch:      (( grab meta.github.branch ))
+      private_key: (( grab meta.github.private_key ))
+
+  - name: uaa-war
+    type: github-release
+    source:
+      user:         starkandwayne
+      repository:   uaa-war-releases
+      access_token: (( grab meta.github.access_token ))
+
+  # - name: notify
+  #   type: slack-notification
+  #   source:
+  #     url: (( grab meta.slack.webhook ))
+
+  # - name: github
+  #   type: github-release
+  #   source:
+  #     user:         (( grab meta.github.owner ))
+  #     repository:   (( grab meta.github.repo ))
+  #     access_token: (( grab meta.github.access_token ))

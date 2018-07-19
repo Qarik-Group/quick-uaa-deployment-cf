@@ -1,0 +1,22 @@
+---
+meta:
+  name:    uaa-deployment-cf
+  target:  ohio-cf
+  url:     https://ci2.starkandwayne.com
+
+  aws:
+    region_name: us-east-2
+    access_key: ((aws-cfcommunity-access))
+    secret_key: ((aws-cfcommunity-secret))
+
+  github:
+    owner:  starkandwayne
+    repo:   (( grab meta.pipeline ))
+    branch: develop
+    private_key:  ((github-private-key))
+    access_token: ((github-access-token))
+
+  slack:
+    webhook:  ((slack-webhook))
+    icon:     ((slack-logo))
+    username: ((slack-username))
