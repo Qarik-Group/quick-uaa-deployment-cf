@@ -173,8 +173,9 @@ env() {
         exit 0
     fi
     echo "export UAA_URL=$(public_url)"
-    echo "export UAA_CA_CERT='$(cat $(ca_cert))'"
-    echo "export UAA_CA_CERT_FILE='$(ca_cert)'"
+    # TODO: Initally assuming that the CF/domain has public CA
+    # echo "export UAA_CA_CERT='$(cat $(ca_cert))'"
+    # echo "export UAA_CA_CERT_FILE='$(ca_cert)'"
 }
 
 info() {
