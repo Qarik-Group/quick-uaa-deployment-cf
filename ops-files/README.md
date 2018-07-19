@@ -14,6 +14,12 @@ u up
 
 Some operator files will require additional `vars.yml` variables. Manually edit your `vars.yml` file and add your own values.
 
+Test that your operator files will correctly apply to the base `src/uaa.yml` and other operators using the `u int` command.
+
+```plain
+u int
+```
+
 | Name | Purpose | Notes |
 |:---  |:---     |:---   |
 | **Branding** | | |
