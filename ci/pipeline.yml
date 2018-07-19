@@ -52,6 +52,12 @@ groups:
       - check-uaa-cli
       - check-bosh-cli
       - check-cf-cli
+  - name: check-upstream
+    jobs:
+      - check-uaa-server
+      - check-uaa-cli
+      - check-bosh-cli
+      - check-cf-cli
 
 jobs:
   - name: check-uaa-server
