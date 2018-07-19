@@ -79,6 +79,12 @@ uaa users
 uaa groups
 ```
 
+## Customize UAA
+
+You can customize your UAA by applying operator files. Create an `operators` folder and any `.yml` files in it will be automatically applied to your UAA YAML configuration.
+
+See the [`ops-files`](ops-files/) folder for more instructions and many production-ready operator files.
+
 ## Create Users
 
 For each staff member you can easily create a new UAA user:
