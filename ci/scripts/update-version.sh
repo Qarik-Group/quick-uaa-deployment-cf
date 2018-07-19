@@ -3,7 +3,8 @@
 set -eu
 
 : ${ENTITY_NAME:?required}
-ENTITY_VERSION=$(cat $ENTITY_NAME/version)
+RESOURCE_NAME=${RESOURCE_NAME:-$ENTITY_NAME}
+ENTITY_VERSION=$(cat $RESOURCE_NAME/version)
 
 if [[ -z $(git config --global user.email) ]]; then
   git config --global user.email "${GIT_EMAIL:?required}"

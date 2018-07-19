@@ -41,6 +41,7 @@ groups:
   - name: (( grab meta.pipeline ))
     jobs:
       - check-uaa-server
+      - check-bosh-cli
 
 jobs:
   - name: check-uaa-server
@@ -55,8 +56,8 @@ jobs:
         resource: uaa-war
         params: {globs: ['ignore']}
         trigger: true
-      - name: update-version-uaa
-        task: update-version-uaa
+      - name: update-version
+        task: update-version
         config:
           platform: linux
           image_resource:
@@ -75,6 +76,41 @@ jobs:
             args: []
           params:
             ENTITY_NAME: uaa-server
+            GIT_EMAIL: (( grab meta.git.email ))
+            GIT_NAME:  (( grab meta.git.name ))
+
+  - name: check-bosh-cli
+    public: true
+    serial: true
+    plan:
+    - do:
+      - name: git
+        get: git
+      - name: bosh-cli
+        get: bosh-cli
+        params: {globs: ['ignore']}
+        trigger: true
+      - name: update-version
+        task: update-version
+        config:
+          platform: linux
+          image_resource:
+            type: docker-image
+            source:
+              repository: (( grab meta.image.name ))
+              tag:        (( grab meta.image.tag ))
+          inputs:
+            - name: git
+            - name: bosh-cli
+          outputs:
+            - name: git-output
+            - name: notifications
+          run:
+            path: ./git/ci/scripts/update-version.sh
+            args: []
+          params:
+            RESOURCE_NAME: bosh-cli
+            ENTITY_NAME: bosh
             GIT_EMAIL: (( grab meta.git.email ))
             GIT_NAME:  (( grab meta.git.name ))
 
@@ -105,6 +141,13 @@ resources:
     source:
       user:         starkandwayne
       repository:   uaa-war-releases
+      access_token: (( grab meta.github.access_token ))
+
+  - name: bosh-cli
+    type: github-release
+    source:
+      user:         cloudfoundry
+      repository:   bosh-cli
       access_token: (( grab meta.github.access_token ))
 
   # - name: notify
