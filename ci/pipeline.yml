@@ -27,6 +27,14 @@ meta:
     private_key:  (( param "Please generate an SSH Deployment Key for this repo and specify it here" ))
     access_token: (( param "Please generate a Personal Access Token to be used for creating github releases (do you have a ci-bot?)" ))
 
+  cf:
+    url:      (( param "Please provide meta.cf.url" ))
+    username: (( param "Please provide meta.cf.username" ))
+    password: (( param "Please provide meta.cf.password" ))
+    organization: (( param "Please provide meta.cf.organization" ))
+    space:        (( param "Please provide meta.cf.space" ))
+    test_route:   (( param "Please provide meta.cf.test_route" ))
+
   # slack:
   #   webhook:       (( param "Please specify your Slack Incoming Webhook Integration URL" ))
   #   success_moji:  ":airplane_departure:"
@@ -113,6 +121,29 @@ jobs:
             ENTITY_NAME: bosh
             GIT_EMAIL: (( grab meta.git.email ))
             GIT_NAME:  (( grab meta.git.name ))
+      - name: test-up
+        task: test-up
+        config:
+          platform: linux
+          image_resource:
+            type: docker-image
+            source:
+              repository: (( grab meta.image.name ))
+              tag:        (( grab meta.image.tag ))
+          inputs:
+            - name: git
+            - name: git-output
+          run:
+            path: ./git/ci/scripts/test-up.sh
+            args: []
+          params:
+            REPO_ROOT: git-output
+            CF_URL: (( grab meta.cf.url ))
+            CF_USERNAME: (( grab meta.cf.username ))
+            CF_PASSWORD: (( grab meta.cf.password ))
+            CF_ORGANIZATION: (( grab meta.cf.organization ))
+            CF_SPACE: (( grab meta.cf.space ))
+            CF_TEST_ROUTE: (( grab meta.cf.test_route ))
 
       # on_failure:
       #   put: notify

@@ -20,6 +20,14 @@ meta:
     private_key:  ((github-private-key))
     access_token: ((github-access-token))
 
+  cf:
+    url:      https://api.run.pivotal.io
+    username: ((cf-pws-username))
+    password: ((cf-pws-password))
+    organization: starkandwayne
+    space:        uaa-deployment-cf-test
+    test_route:   uaa-deployment-cf-test.cfapps.io
+
   slack:
     webhook:  ((slack-webhook))
     icon:     ((slack-logo))
