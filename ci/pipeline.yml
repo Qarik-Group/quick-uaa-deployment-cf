@@ -109,6 +109,11 @@ jobs:
             CF_ORGANIZATION: (( grab meta.cf.organization ))
             CF_SPACE: (( grab meta.cf.space ))
             CF_TEST_ROUTE: (( grab meta.cf.test_route ))
+      - name: upload-git
+        put: git
+        params:
+          rebase: true
+          repository: git-output
 
   - name: check-bosh-cli
     public: true
@@ -167,6 +172,11 @@ jobs:
             CF_ORGANIZATION: (( grab meta.cf.organization ))
             CF_SPACE: (( grab meta.cf.space ))
             CF_TEST_ROUTE: (( grab meta.cf.test_route ))
+      - name: upload-git
+        put: git
+        params:
+          rebase: true
+          repository: git-output
 
       # on_failure:
       #   put: notify
