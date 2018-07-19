@@ -55,7 +55,6 @@ groups:
 
 jobs:
   - name: check-uaa-server
-    public: true
     serial_groups: ["test-up"]
     plan:
     - do:
@@ -118,7 +117,6 @@ jobs:
           repository: git-output
 
   - name: check-bosh-cli
-    public: true
     serial_groups: ["test-up"]
     plan:
     - do:
@@ -181,7 +179,6 @@ jobs:
           repository: git-output
 
   - name: check-cf-cli
-    public: true
     serial_groups: ["test-up"]
     plan:
     - do:
@@ -244,7 +241,6 @@ jobs:
           repository: git-output
 
   - name: check-uaa-cli
-    public: true
     serial_groups: ["test-up"]
     plan:
     - do:
