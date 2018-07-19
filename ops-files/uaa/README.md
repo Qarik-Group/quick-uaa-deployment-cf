@@ -24,7 +24,7 @@ u uaayml
 |:---  |:---     |:---   |
 | **Branding** | | |
 | [`4-branding-example.yml`](4-branding-example.yml) | Branding example | Copy and modify for your organization |
-| ['5-google-analytics.yml'](5-google-analytics.yml) | Google Analytics | Configure your Google Analyics code |
+| [`5-google-analytics.yml`](5-google-analytics.yml) | Google Analytics | Configure your Google Analyics code |
 | **Sign up / Login** | | |
 | [`7-self-service.yml`](7-self-service.yml) | Self-service signup and password reset | Users can create their own account and reset their password. Requires SMTP server. |
 | [`7-enable-mfa-google-auth.yml`](7-enable-mfa-google-auth.yml) | Require MFA | Users will be required to setup Google Authenticator/Authy when they nexted login. |
