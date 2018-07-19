@@ -46,12 +46,12 @@ cf create-service cleardb spark uaa-db
 To generate secrets, encyption keys, certificates for your UAA, and deploy the UAA to your Cloud Foundry:
 
 ```plain
-u up --route drnic-uaa-production.cfapps.io
+u up --route login.starkandwayne.com
 ```
 
 Note, the `u up` command can be run in future to upgrade. The flags provided above will be cached in `vars.yml` and not be required to be provided again.
 
-Once deployed, visit the UAA home page for users to login https://drnic-uaa-production.cfapps.io (for your route).
+Once deployed, visit the UAA home page for users to login https://login.starkandwayne.com (for your route).
 
 You can see the generated `uaa_admin` client secret, and complimentary `admin` user:
 
