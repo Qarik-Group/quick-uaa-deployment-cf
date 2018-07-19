@@ -1,3 +1,6 @@
+issuer:
+  uri: https://((route))
+
 encryption:
   encryption_keys:
   - label: uaa-encryption-key-1
