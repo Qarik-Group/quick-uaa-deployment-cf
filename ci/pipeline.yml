@@ -6,8 +6,8 @@ meta:
   pipeline: (( grab meta.name ))
 
   image:
-    name: starkandwayne/concourse-java
-    tag: "8"
+    name: starkandwayne/concourse
+    tag: latest
 
   aws:
     bucket:     (( grab meta.pipeline ))
@@ -36,20 +36,40 @@ meta:
 groups:
   - name: (( grab meta.pipeline ))
     jobs:
-      - check-uaa
+      - check-uaa-server
 
 jobs:
-  - name: check-uaa
+  - name: check-uaa-server
     public: true
     serial: true
     plan:
     - do:
       - name: git
         get: git
-      - name: uaa
+      - name: uaa-server
         get: uaa-war
-        params: {globs: ['*.war']}
+        params: {globs: ['ignore']}
         trigger: true
+      - name: update-version-uaa
+        task: update-version-uaa
+        config:
+          platform: linux
+          image_resource:
+            type: docker-image
+            source:
+              repository: (( grab meta.image.name ))
+              tag:        (( grab meta.image.tag ))
+          inputs:
+            - name: git
+            - name: uaa-server
+          outputs:
+            - name: git-output
+            - name: notifications
+          run:
+            path: ./git/ci/scripts/update-version.sh
+            args: []
+          params:
+            ENTITY_NAME: uaa-server
 
       # on_failure:
       #   put: notify
