@@ -15,6 +15,10 @@ meta:
     access_key: (( param "Please set your AWS Access Key ID for your pipeline S3 Bucket" ))
     secret_key: (( param "Please set your AWS Secret Key ID for your pipeline S3 Bucket" ))
 
+  git:
+    email:  (( param "Please provide the git email for automated commits" ))
+    name:   (( param "Please provide the git name for automated commits" ))
+
   github:
     uri:          (( concat "git@github.com:" meta.github.owner "/" meta.github.repo ))
     owner:        (( param "Please specify the name of the user / organization that owns the Github repository" ))
@@ -47,7 +51,8 @@ jobs:
       - name: git
         get: git
       - name: uaa-server
-        get: uaa-war
+        get: uaa-server
+        resource: uaa-war
         params: {globs: ['ignore']}
         trigger: true
       - name: update-version-uaa
@@ -70,6 +75,8 @@ jobs:
             args: []
           params:
             ENTITY_NAME: uaa-server
+            GIT_EMAIL: (( grab meta.git.email ))
+            GIT_NAME:  (( grab meta.git.name ))
 
       # on_failure:
       #   put: notify

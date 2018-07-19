@@ -9,6 +9,10 @@ meta:
     access_key: ((aws-cfcommunity-access))
     secret_key: ((aws-cfcommunity-secret))
 
+  git:
+    email:  ((git-commit-email))
+    name:   ((git-commit-name))
+
   github:
     owner:  starkandwayne
     repo:   (( grab meta.pipeline ))
