@@ -103,17 +103,28 @@ down_usage() {
 }
 
 up() {
+    (>&2 echo "Check target Cloud Foundry...")
     _check_cf_target
+
+    (>&2 echo)
+    (>&2 echo "Check DB service instance...")
     cf_db_service_instance_url > /dev/null
 
+    (>&2 echo)
+    (>&2 echo "Check composition of UAA YAML configuration...")
+    uaa_int --var-errs > /dev/null
+
+    (>&2 echo)
     (>&2 echo "Creating application...")
     cf push "$(appname)" -f ${project_root}/src/manifest.yml --no-start \
       --vars-file "$(vars_file)" \
       --var war_path=$(war_path)
 
+    (>&2 echo)
     (>&2 echo "Setting uaa.yml configuration...")
-    cf set-env "$(appname)" UAA_CONFIG_YAML "$(uaa_yml)"
+    cf set-env "$(appname)" UAA_CONFIG_YAML "$(uaa_int)"
 
+    (>&2 echo)
     (>&2 echo "Starting application...")
     cf restart "$(appname)"
 }
@@ -246,10 +257,6 @@ YAML
     echo "${state}/cf_db_service_vars.yml"
 }
 
-uaa_yml() {
-  bosh int $(uaa_int_args)
-}
-
 uaa_int_args() {
     local ops_files=()
 
@@ -267,7 +274,7 @@ uaa_int_args() {
 }
 
 uaa_int() {
-    bosh int <(uaa_yml) "$@"
+    bosh int $(uaa_int_args) "$@"
 }
 
 store_uaa_int() {
