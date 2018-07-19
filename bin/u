@@ -280,6 +280,7 @@ uaa_int_args() {
 }
 
 uaa_int() {
+    cf_db_service_instance_url > /dev/null
     bosh int $(uaa_int_args) "$@"
 }
 
