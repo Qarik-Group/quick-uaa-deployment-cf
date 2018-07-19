@@ -186,6 +186,10 @@ info() {
     echo "  password: $(store_uaa_int --path /admin_user_password)"
 }
 
+_ssh() {
+    cf ssh $(appname)
+}
+
 _uaa_auth_client() {
     faketty uaa target https://$(get_var route) "$@"
     faketty uaa get-client-credentials-token uaa_admin --client_secret $(store_uaa_int --path /admin_client_secret) "$@"
