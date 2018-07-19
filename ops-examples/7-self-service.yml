@@ -1,5 +1,5 @@
 - type: replace
-  path: /login/selfServiceLinksEnabled?
+  path: /login/selfServiceLinksEnabled
   value: true
 
 - type: replace

@@ -45,6 +45,7 @@ jwt:
           signingKey: ((uaa_jwt_signing_key.private_key))
 
 login:
+  selfServiceLinksEnabled: false
   serviceProviderKey: ((uaa_service_provider_ssl.private_key))
   serviceProviderKeyPassword: "" # TODO: Remove this when UAA defaults this value
   serviceProviderCertificate: ((uaa_service_provider_ssl.certificate))
