@@ -280,7 +280,7 @@ uaa_int_args() {
     vars_file_arg="-l $(vars_file) -l $(cf_db_service_vars_file)"
 
     # Database selection from service instance
-    ops_files+=(${repo_root}/src/db/$(cat $(cf_db_service_vars_file) | bosh int - --path /db_scheme).yml)
+    ops_files+=(${repo_root}/src/db/1-$(cat $(cf_db_service_vars_file) | bosh int - --path /db_scheme).yml)
 
     if [[ -d ${project_root}/operators/uaa ]]; then
         ops_files+=(${project_root}/operators/uaa/*.yml)

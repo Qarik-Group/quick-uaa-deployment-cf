@@ -29,3 +29,5 @@ u uaayml
 | [`7-self-service.yml`](7-self-service.yml) | Self-service signup and password reset | Users can create their own account and reset their password. Requires SMTP server. |
 | [`7-enable-mfa-google-auth.yml`](7-enable-mfa-google-auth.yml) | Require MFA | Users will be required to setup Google Authenticator/Authy when they nexted login. |
 | [`7-google-oidc-provider.yml`](7-google-oidc-provider.yml) | Login with Google | Users can sign up and login with their Google account. Requires Google Compute credentials. |
+| **Operations** | | |
+| [`2-db-connections.yml`](2-db-connections.yml) | Scale up DB connections | Increase from 4 max active connections to database |
