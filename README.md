@@ -81,9 +81,11 @@ uaa groups
 
 ## Customize UAA
 
-You can customize your UAA by applying operator files. Create an `operators` folder and any `.yml` files in it will be automatically applied to your UAA YAML configuration.
+You can customize your UAA by applying operator files.
 
-See the [`ops-files`](ops-files/) folder for more instructions and many production-ready operator files.
+Customize the UAA itself by creating an `operators/uaa/` folder, and any `.yml` operator files in it will be automatically applied to your UAA YAML configuration during `u up`. See the [`ops-files/uaa/`](ops-files/uaa/) folder for more instructions and many production-ready operator files.
+
+Customize the Cloud Foundry environment by creating an `operators/cf/` folder, and any `.yml` operator files in it will be automatically applied to your `cf push` configuration during `u up`. See the [`ops-files/cf/`](ops-files/cf/) folder for more instructions and many production-ready operator files.
 
 ## Create Users
 

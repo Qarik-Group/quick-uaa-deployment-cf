@@ -17,6 +17,7 @@ trap "[[ -s $vars_file ]] || { rm -f $vars_file; }" EXIT
 var_cache="${tmp}/vars_cache.yml"
 int_cache="${tmp}/int_cache.yml"
 
+cf_manifest_yml_base="${repo_root}/src/manifest.yml"
 uaa_yml_base="${repo_root}/src/uaa.yml"
 
 PATH=${repo_root}/bin:${PATH}
@@ -86,7 +87,8 @@ usage() {
     echo "  ssh -- ssh into the UAA app instance"
     echo "  logs -- streaming logs from UAA app instance; pass --recent to see recent logs"
     echo "  env -- sourceable environment variables for cli clients"
-    echo "  int -- wrapper for 'bosh int' for the bosh manifest"
+    echo "  uaayml -- build UAA yaml configuration"
+    echo "  cfyml  -- build Cloud Foundry deployment manifest"
     echo "  info -- UAA information"
     echo "  auth-client -- configures uaa cli as a client only"
     exit 1
@@ -113,14 +115,18 @@ up() {
     cf_db_service_vars_file > /dev/null
 
     (>&2 echo)
-    (>&2 echo "Check composition of UAA YAML configuration...")
+    (>&2 echo "Check construction of Cloud Foundry deployment manifest...")
+    cf_int --var war_path=$(war_path) --var-errs > /dev/null
+
+    (>&2 echo)
+    (>&2 echo "Check construction of UAA YAML configuration...")
     uaa_int --var-errs > /dev/null
 
     (>&2 echo)
     (>&2 echo "Creating application...")
-    cf push "$(appname)" -f ${project_root}/src/manifest.yml --no-start \
-      --vars-file "$(vars_file)" \
-      --var war_path=$(war_path)
+    cf push "$(appname)" -f <(cf_int) \
+        --var war_path=$(war_path) \
+        --no-start
 
     (>&2 echo)
     (>&2 echo "Setting uaa.yml configuration...")
@@ -276,8 +282,8 @@ uaa_int_args() {
     # Database selection from service instance
     ops_files+=(${repo_root}/src/db/$(cat $(cf_db_service_vars_file) | bosh int - --path /db_scheme).yml)
 
-    if [[ -d ${project_root}/operators ]]; then
-        ops_files+=(${project_root}/operators/*.yml)
+    if [[ -d ${project_root}/operators/uaa ]]; then
+        ops_files+=(${project_root}/operators/uaa/*.yml)
     fi
 
     ops_file_args=$(printf '%s\n' "${ops_files[@]}" | sed 's|\(.*\)/|\1@|' | sort -t@ -k2 | sed 's|@|/|' | sed 's/^/-o /' | xargs)
@@ -293,6 +299,22 @@ store_uaa_int() {
     bosh int $vars_store "$@"
 }
 
+cf_int_args() {
+    local ops_files=()
+
+    vars_file_arg="-l $(vars_file)"
+
+    if [[ -d ${project_root}/operators/cf ]]; then
+        ops_files+=(${project_root}/operators/cf/*.yml)
+    fi
+
+    ops_file_args=$(printf '%s\n' "${ops_files[@]}" | sed 's|\(.*\)/|\1@|' | sort -t@ -k2 | sed 's|@|/|' | sed 's/^/-o /' | xargs)
+    echo "${cf_manifest_yml_base} ${ops_file_args} ${vars_store_arg} ${vars_file_arg}"
+}
+
+cf_int() {
+    bosh int $(cf_int_args) "$@"
+}
 _check_cf_target() {
     cf target
 }
@@ -437,6 +459,16 @@ case "${1:-usage}" in
     int)
         shift
         uaa_int "$@"
+        ;;
+
+    uaayml)
+        shift
+        uaa_int "$@"
+        ;;
+
+    cfyml)
+        shift
+        cf_int "$@"
         ;;
 
     *)

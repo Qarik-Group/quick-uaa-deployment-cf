@@ -1,0 +1,8 @@
+- type: replace
+  path: /applications/name=uaa/routes/-
+  value:
+    route: ((uaa_route))
+
+- type: replace
+  path: /applications/name=uaa/env/UAA_URL
+  value: https://((uaa_route))
