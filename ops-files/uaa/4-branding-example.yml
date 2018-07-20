@@ -5,15 +5,15 @@
       text: Terms and Conditions
       link: https://((route))/consent/terms
     companyName: Your Company
-    # productLogo: branding_product_logo
-    # squareLogo: branding_square_logo
+    # productLogo: base64 branding_product_logo.png
+    # squareLogo: base64 branding_square_logo.png
     footerLegalText: Copyright © Your Company, 2018. All Rights Reserved.
     footerLinks:
       Terms: /footer/terms
       Privacy Agreement: /footer/privacy
       Licensing: /footer/licensing
     banner:
-      # logo: branding_banner_logo
+      # logo: base64 branding_banner_logo.png
       text: Welcome to UAA! We will be undergoing system maintenance tonight.
       textColor: "#000000"
       backgroundColor: "#FFFFFF"

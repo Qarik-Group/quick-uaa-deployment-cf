@@ -55,6 +55,8 @@ login:
   serviceProviderKeyPassword: "" # TODO: Remove this when UAA defaults this value
   serviceProviderCertificate: ((uaa_service_provider_ssl.certificate))
 
+assetBaseUrl: /resources/oss
+
 zones:
   internal:
     hostnames:
