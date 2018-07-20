@@ -9,7 +9,7 @@ repo_root=$(dirname $(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd))
 set -eu
 
 project_root=${UAADEPLOY_PROJECT_ROOT:-${repo_root}}
-custom_assets=${project_root}/custom
+custom_assets=${custom_assets:-${project_root}/custom}
 war_downloads=~/.uaa/server/downloads
 
 version=$(grep uaa-deployment ${repo_root}/.versions | cut -d= -f2)
@@ -24,9 +24,9 @@ uaa_build_file="uaa-${uaa_version}-${custom_build_name}.war"
 usage() {
   echo "customize-uaa-war v${version:-(development)}"
   echo "> Re-build ${uaa_src_file} with customized assets"
-  echo "  build -- build new .war"
-  echo "  test  -- exit 0 if custom build exists, else exit 1"
-  echo "  init  -- extract current theme into custom/ for modification"
+  echo "  build      -- build new .war"
+  echo "  test       -- exit 0 if custom build exists, else exit 1"
+  echo "  init [dir] -- extract current theme into custom/ for modification (or alternate dir/)"
   exit 1
 }
 
@@ -54,15 +54,25 @@ _build() {
   fi
   cp -a $(src_war_path) $(build_war_path)
 
+  WARFILE=$(build_war_path)
   pushd ${custom_assets}
+  if [[ -d templates ]]; then
+    echo "Adding custom templates"
+    JARFILE=$(unzip -v "${WARFILE}" | grep cloudfoundry-identity-server- | awk '{print $8}')
+
+    unzip "${WARFILE}" "${JARFILE}"
+    zip -r "${JARFILE}" templates
+    zip "$WARFILE" "$JARFILE"
+    rm -rf "$JARFILE" WEB-INF
+  fi
+
   if [[ -d resources ]]; then
     echo "Adding custom/resources assets"
-    zip -r "$(build_war_path)" resources
+    zip -r "${WARFILE}" resources
   fi
-  popd
 
   echo "Converted: $(src_war_path)"
-  echo "       To: $(build_war_path)"
+  echo "       To: ${WARFILE}"
 }
 
 _test() {
@@ -70,14 +80,20 @@ _test() {
 }
 
 _init() {
+  custom_assets=${1:-${custom_assets}}
+
   [[ -d ${custom_assets} ]] && {
     echo "Exiting. ${custom_assets}/ directory already exists."
     exit 1
   }
+  JARFILE=$(unzip -v "$(src_war_path)" | grep cloudfoundry-identity-server- | awk '{print $8}')
   mkdir -p ${custom_assets}
-  pushd ${custom_assets}
-  unzip $(src_war_path) 'resources/**/*'
-  popd
+  cd ${custom_assets}
+  unzip "$(src_war_path)" "${JARFILE}" 'resources/**/*'
+
+  unzip "${JARFILE}" 'templates/**/*'
+  rm -rf "${JARFILE}"
+  rm -rf WEB-INF
 }
 
 case "${1:-usage}" in

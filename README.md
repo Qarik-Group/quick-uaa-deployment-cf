@@ -87,7 +87,9 @@ Customize the UAA itself by creating an `operators/uaa/` folder, and any `.yml` 
 
 Customize the Cloud Foundry environment by creating an `operators/cf/` folder, and any `.yml` operator files in it will be automatically applied to your `cf push` configuration during `u up`. See the [`ops-files/cf/`](ops-files/cf/) folder for more instructions and many production-ready operator files.
 
-### Modify logos
+### Modify theme
+
+![customizing-all-the-things_png](docs/images/customizing-all-the-things_png.png)
 
 To modify the logos - the homepage logo and the square favicon logo - create a folder `custom/resources/oss/images` and place your own files into it:
 
@@ -97,7 +99,27 @@ custom/resources/oss/images
 └── square-logo.png
 ```
 
+To modify the HTML templates - the login page, the home page, even the email templates - create a folder `custom/templates` and place your own override files into it:
+
+```plain
+custom/templates
+└── web
+    └── login.html
+```
+
+Your `custom/` folder might look like:
+
+![custom-overrides](docs/images/custom-overrides.png)
+
 During `u up` a custom .war will be created and uploaded during `cf push`. See the [`bin/customize-uaa-war`](bin/customize-uaa-war) script for more details.
+
+```plain
+$ customize-uaa-war
+
+  build      -- build new .war
+  test       -- exit 0 if custom build exists, else exit 1
+  init [dir] -- extract current theme into custom/ for modification (or alternate dir/)
+```
 
 ## Create Users
 
