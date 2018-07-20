@@ -26,6 +26,7 @@ usage() {
   echo "> Re-build ${uaa_src_file} with customized assets"
   echo "  build -- build new .war"
   echo "  test  -- exit 0 if custom build exists, else exit 1"
+  echo "  init  -- extract current theme into custom/ for modification"
   exit 1
 }
 
@@ -68,6 +69,17 @@ _test() {
   [[ -d ${custom_assets}/resources || -d ${custom_assets}/web ]]
 }
 
+_init() {
+  [[ -d ${custom_assets} ]] && {
+    echo "Exiting. ${custom_assets}/ directory already exists."
+    exit 1
+  }
+  mkdir -p ${custom_assets}
+  pushd ${custom_assets}
+  unzip $(src_war_path) 'resources/**/*'
+  popd
+}
+
 case "${1:-usage}" in
   build)
     shift
@@ -76,6 +88,10 @@ case "${1:-usage}" in
   test)
     shift
     _test "$@"
+    ;;
+  init)
+    shift
+    _init "$@"
     ;;
   *)
     usage
