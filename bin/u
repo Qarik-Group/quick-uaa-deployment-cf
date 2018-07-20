@@ -5,12 +5,14 @@ set -eu
 
 project_root=${UAADEPLOY_PROJECT_ROOT:-${repo_root}}
 state=${UAADEPLOY_STATE_ROOT:-${project_root}/state}
+cache=${state}/cache
 vars_file=${UAADEPLOY_VARS_FILE:-${project_root}/vars.yml}
 vars_store=${UAADEPLOY_VARS_STORE:-${state}/creds.yml}
 
 vars_store_arg="--vars-store ${vars_store}"
 
 mkdir -p ${state}
+mkdir -p ${cache}
 tmp=$(mktemp -d)
 trap "rm -fr ${tmp}" EXIT
 trap "[[ -s $vars_file ]] || { rm -f $vars_file; }" EXIT
@@ -146,6 +148,7 @@ down() {
     cf delete "$(appname)" "$@"
     cf delete-service-key "$(dbname)" "$(dbname)" "$@"
     cf delete-service "$(dbname)" "$@"
+    clear_cache
 }
 
 clean() {
@@ -221,19 +224,23 @@ war_path() {
 }
 
 cf_current_space_guid() {
-  bosh int ~/.cf/config.json --path /SpaceFields/GUID
+    bosh int ~/.cf/config.json --path /SpaceFields/GUID
+}
+
+clear_cache() {
+    rm -rf ${cache}
 }
 
 cf_db_service_instance_url() {
-  if [[ ! -f ${state}/service_instance_url ]]; then
+  if [[ ! -f ${cache}/service_instance_url ]]; then
     service_instance=$(cf curl "/v2/spaces/$(cf_current_space_guid)/service_instances?q=name:$(dbname)")
     if [[ "$(bosh int <(echo "${service_instance}") --path /total_results)" == "0" ]]; then
       (>&2 echo "Please create PostgreSQL/MySQL service instance named $(dbname)")
       exit 1
     fi
-    bosh int <(echo "${service_instance}") --path /resources/0/metadata/url > ${state}/service_instance_url
+    bosh int <(echo "${service_instance}") --path /resources/0/metadata/url > ${cache}/service_instance_url
   fi
-  cat ${state}/service_instance_url
+  cat ${cache}/service_instance_url
 }
 
 cf_db_service_key_uri() {
@@ -248,7 +255,7 @@ cf_db_service_key_uri() {
 }
 
 cf_db_service_vars_file() {
-    if [[ ! -f ${state}/cf_db_service_vars.yml ]]; then
+    if [[ ! -f ${cache}/cf_db_service_vars.yml ]]; then
         uri=$(cf_db_service_key_uri)
         pattern='^(([a-z]+)://)?((([^:\/]+)(:([^@\/]*))?@)?([^:\/?]+)(:([0-9]+))?)\/?([^?]*)?(\?[^#]*)?(#.*)?$'
         [[ "$uri" =~ $pattern ]] || {
@@ -262,7 +269,7 @@ cf_db_service_vars_file() {
         hostname=${BASH_REMATCH[8]}
         port=${BASH_REMATCH[10]}
         dbname=${BASH_REMATCH[11]}
-        cat > ${state}/cf_db_service_vars.yml <<-YAML
+        cat > ${cache}/cf_db_service_vars.yml <<-YAML
 db_scheme: ${scheme}
 db_username: ${username}
 db_password: ${password}
@@ -271,7 +278,7 @@ db_port: ${port}
 db_name: ${dbname}
 YAML
     fi
-    echo "${state}/cf_db_service_vars.yml"
+    echo "${cache}/cf_db_service_vars.yml"
 }
 
 uaa_int_args() {
