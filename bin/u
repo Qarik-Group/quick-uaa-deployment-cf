@@ -8,6 +8,7 @@ state=${UAADEPLOY_STATE_ROOT:-${project_root}/state}
 cache=${state}/cache
 vars_file=${UAADEPLOY_VARS_FILE:-${project_root}/vars.yml}
 vars_store=${UAADEPLOY_VARS_STORE:-${state}/creds.yml}
+war_downloads=~/.uaa/server/downloads
 
 vars_store_arg="--vars-store ${vars_store}"
 
@@ -125,6 +126,10 @@ up() {
     uaa_int --var-errs > /dev/null
 
     (>&2 echo)
+    (>&2 echo "Check custom build of UAA...")
+    build_custom_war
+
+    (>&2 echo)
     (>&2 echo "Creating application...")
     cf push "$(appname)" -f <(cf_int) \
         --var war_path=$(war_path) \
@@ -212,7 +217,15 @@ _uaa_auth_client() {
 
 war_path() {
     local version=$(grep "^uaa-server=" ${repo_root}/.versions | cut -d= -f2)
-    local war_path=~/.uaa/server/downloads/uaa-${version}.war
+    custom_build_name=custom
+    [[ -f ${project_root}/vars.yml ]] && {
+        custom_build_name=$(bosh int vars.yml --path /route | sed -e "s%\.%-%g");
+    }
+    # Possibly produced by bin/customize-uaa-war
+    local custom_war_path=${war_downloads}/uaa-${version}-${custom_build_name}.war
+    [[ -f ${custom_war_path} ]] && { echo ${custom_war_path}; exit 0; }
+
+    local war_path=${war_downloads}/uaa-${version}.war
 
     mkdir -p $(dirname ${war_path})
     if [[ ! -f ${war_path} ]]; then
@@ -221,6 +234,14 @@ war_path() {
       curl -s -L -o ${war_path} ${url}
     fi
     echo ${war_path}
+}
+
+build_custom_war() {
+    set +e
+    customize-uaa-war test && {
+        customize-uaa-war build
+    }
+    set -e
 }
 
 cf_current_space_guid() {
