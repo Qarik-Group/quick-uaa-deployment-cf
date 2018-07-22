@@ -219,7 +219,7 @@ war_path() {
     local version=$(grep "^uaa-server=" ${repo_root}/.versions | cut -d= -f2)
     custom_build_name=custom
     [[ -f ${project_root}/vars.yml ]] && {
-        custom_build_name=$(bosh int vars.yml --path /route | sed -e "s%\.%-%g");
+        custom_build_name=$(bosh int ${project_root}/vars.yml --path /route | sed -e "s%\.%-%g");
     }
     # Possibly produced by bin/customize-uaa-war
     local custom_war_path=${war_downloads}/uaa-${version}-${custom_build_name}.war
