@@ -131,17 +131,21 @@ up() {
 
     (>&2 echo)
     (>&2 echo "Creating application...")
-    cf push "$(appname)" -f <(cf_int) \
+    cf delete "$(appname)-new" -f
+    cf push "$(appname)-new" -f <(cf_int) \
         --var war_path=$(war_path) \
         --no-start
 
     (>&2 echo)
     (>&2 echo "Setting uaa.yml configuration...")
-    cf set-env "$(appname)" UAA_CONFIG_YAML "$(uaa_int)"
+    cf set-env "$(appname)-new" UAA_CONFIG_YAML "$(uaa_int)"
 
     (>&2 echo)
     (>&2 echo "Starting application...")
-    cf restart "$(appname)"
+    cf delete "$(appname)" -f # due to DB connection limits
+    cf restart "$(appname)-new"
+
+    cf rename "$(appname)-new" "$(appname)"
 }
 
 down() {
