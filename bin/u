@@ -336,11 +336,11 @@ cf_int_args() {
 
     vars_file_arg="-l $(vars_file)"
 
+    ops_file_args=
     if [[ -d ${project_root}/operators/cf ]]; then
         ops_files+=(${project_root}/operators/cf/*.yml)
+        ops_file_args=$(printf '%s\n' "${ops_files[@]}" | sed 's|\(.*\)/|\1@|' | sort -t@ -k2 | sed 's|@|/|' | sed 's/^/-o /' | xargs)
     fi
-
-    ops_file_args=$(printf '%s\n' "${ops_files[@]}" | sed 's|\(.*\)/|\1@|' | sort -t@ -k2 | sed 's|@|/|' | sed 's/^/-o /' | xargs)
     echo "${cf_manifest_yml_base} ${ops_file_args} ${vars_store_arg} ${vars_file_arg}"
 }
 
