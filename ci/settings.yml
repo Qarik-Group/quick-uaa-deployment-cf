@@ -15,7 +15,7 @@ meta:
 
   github:
     owner:  starkandwayne
-    repo:   (( grab meta.pipeline ))
+    repo:   quick-uaa-deployment-cf
     branch: develop
     private_key:  ((github-private-key))
     access_token: ((github-access-token))

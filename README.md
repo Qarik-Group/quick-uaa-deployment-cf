@@ -1,28 +1,28 @@
-# U - UAA deployment with Cloud Foundry
+# Quaa - Quick UAA deployment with Cloud Foundry
 
-This project is dedicated to making it easy to bring up a secure, production-ready UAA on any Cloud Foundry, and to upgrade it in future.
+This project is dedicated to making it easy to bring up a quick, secure, production-ready UAA on any Cloud Foundry, and to upgrade it in future.
 
-This project is derived from UAA's own suggestions for how to run the UAA on Cloud Foundry, and the subcommands and operator files are designed to match the sister project for deploying UAA with BOSH, [uaa-deployment](https://github.com/starkandwayne/uaa-deployment).
+This project is derived from UAA's own suggestions for how to run the UAA on Cloud Foundry, and the subcommands and operator files are designed to match the sister project for deploying UAA with BOSH, [quick-uaa-deployment](https://github.com/starkandwayne/quick-uaa-deployment).
 
-The name of the helper application is `u`. This name matches the sister project's helper name. This name in turn came from the project [BUCC](https://github.com/starkandwayne/bucc), with its helper app `bucc`, which stood for BOSH-UAA-CredHub-Concourse. Since this project only deploys the UAA, we appropriately shorten the helper name to `u`.
+The name of the helper application is `quaa`. This name matches the sister project's helper name. The aim is to have matching subcommands for common activities between the two projects.
 
-## Deploy UAA
+## Deploy UAA to Cloud Foundry
 
-To bootstrap a secure, production-grade UAA to any Cloud Foundry:
+To quickly bootstrap a secure, production-grade UAA to any Cloud Foundry:
 
 First, clone this repo.
 
 ```plain
-git https://github.com/starkandwayne/uaa-deployment-cf
-cd uaa-deployment-cf
+git https://github.com/starkandwayne/quick-uaa-deployment-cf ~/workspace/quick-uaa-deployment-cf
+cd ~/workspace/quick-uaa-deployment-cf
 ```
 
 If you have `direnv` installed, you will be asked to `direnv allow` and then you will see the dependent CLIs (`cf`, `uaa`, and `bosh`) downloaded into the `bin/` folder.
 
-If you do not see this, instead manually source the `u env` output to preinstall the dependent CLIs into your local path:
+If you do not see this, instead manually source the `quaa env` output to preinstall the dependent CLIs into your local path:
 
 ```plain
-source <(bin/u env)
+eval "$(bin/quaa env)"
 ```
 
 Using the `cf` CLI, target and login to your Cloud Foundry, and select an organization and space:
@@ -46,33 +46,33 @@ cf create-service cleardb spark uaa-db
 To generate secrets, encyption keys, certificates for your UAA, and deploy the UAA to your Cloud Foundry:
 
 ```plain
-u up --route login.starkandwayne.com
+quaa up --route login.starkandwayne.com
 ```
 
-Note, the `u up` command can be run in future to upgrade. The flags provided above will be cached in `vars.yml` and not be required to be provided again.
+Note, the `quaa up` command can be run in future to upgrade. The flags provided above will be cached in `vars.yml` and not be required to be provided again.
 
 Once deployed, visit the UAA home page for users to login https://login.starkandwayne.com (for your route).
 
 You can see the generated `uaa_admin` client secret, and complimentary `admin` user:
 
 ```plain
-$ u info
+$ quaa info
 ```
 
 To target and authorize the [`uaa` CLI](https://github.com/cloudfoundry-incubator/uaa-cli):
 
 ```plain
-u auth-client
+quaa auth-client
 
 uaa clients
 uaa users
 uaa groups
 ```
 
-To use the `u` and `uaa` CLIs anywhere, source the `u env` output:
+To use the `quaa` and `uaa` CLIs anywhere, eval the `quaa env` output:
 
 ```plain
-source <(path/to/uaa-deployment-cf/bin/u env)
+eval "$(~/workspace/quick-uaa-deployment-cf/bin/quaa env)"
 
 uaa clients
 uaa users
@@ -141,12 +141,12 @@ uaa add-member uaa.admin drnic
 
 ## Upgrade UAA
 
-To upgrade, pull the lastest commits from the `master` branch and run `u up` again.
+To upgrade, pull the lastest commits from the `master` branch and run `quaa up` again.
 
 ```plain
-cd path/to/uaa-deployment-cf
+cd ~/workspace/quick-uaa-deployment-cf
 git pull
-u up
+quaa up
 ```
 
 ## Destroy UAA
@@ -154,5 +154,5 @@ u up
 To tear down your UAA and its database:
 
 ```plain
-u down
+quaa down
 ```

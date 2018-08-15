@@ -4,7 +4,7 @@ set -eu
 
 cd ${REPO_ROOT:?required}
 
-source <(bin/u env)
+eval "$(bin/quaa env)"
 
 u_down() {
   set +e
@@ -12,7 +12,7 @@ u_down() {
   echo
   echo
   echo "Cleaning up..."
-  u down -f
+  quaa down -f
 }
 trap u_down SIGINT SIGTERM EXIT
 
@@ -22,9 +22,9 @@ cf target -o "${CF_ORGANIZATION:?required}" -s "${CF_SPACE:?required}"
 
 cf cs elephantsql turtle uaa-db
 
-u up --route "${CF_TEST_ROUTE:?required}"
+quaa up --route "${CF_TEST_ROUTE:?required}"
 
 curl -f "https://${CF_TEST_ROUTE}/login" -H "Accept: application/json"
 
-u auth-client
+quaa auth-client
 uaa users
