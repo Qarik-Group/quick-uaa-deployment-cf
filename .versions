@@ -1,5 +1,5 @@
 uaa-deployment=1.2.0
 cf=6.38.0
-bosh=5.1.2
+bosh=5.2.2
 uaa-cli=0.0.1
 uaa-server=4.19.2
