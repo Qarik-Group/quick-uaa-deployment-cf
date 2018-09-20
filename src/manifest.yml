@@ -8,6 +8,7 @@ applications:
   path: ((war_path))
   routes:
   - route: ((route))
+  services: [] # no explicit binding; using service keys instead
   env:
     UAA_URL: https://((route))
     LOGIN_URL: https://((route))
