@@ -83,9 +83,9 @@ uaa groups
 
 You can customize your UAA by applying operator files.
 
-Customize the UAA itself by creating an `operators/uaa/` folder, and any `.yml` operator files in it will be automatically applied to your UAA YAML configuration during `u up`. See the [`ops-files/uaa/`](ops-files/uaa/) folder for more instructions and many production-ready operator files.
+Customize the UAA itself by creating an `operators/uaa/` folder, and any `.yml` operator files in it will be automatically applied to your UAA YAML configuration during `quaa up`. See the [`ops-files/uaa/`](ops-files/uaa/) folder for more instructions and many production-ready operator files.
 
-Customize the Cloud Foundry environment by creating an `operators/cf/` folder, and any `.yml` operator files in it will be automatically applied to your `cf push` configuration during `u up`. See the [`ops-files/cf/`](ops-files/cf/) folder for more instructions and many production-ready operator files.
+Customize the Cloud Foundry environment by creating an `operators/cf/` folder, and any `.yml` operator files in it will be automatically applied to your `cf push` configuration during `quaa up`. See the [`ops-files/cf/`](ops-files/cf/) folder for more instructions and many production-ready operator files.
 
 ### Modify theme
 
@@ -111,7 +111,7 @@ Your `custom/` folder might look like:
 
 ![custom-overrides](docs/images/custom-overrides.png)
 
-During `u up` a custom .war will be created and uploaded during `cf push`. See the [`bin/customize-uaa-war`](bin/customize-uaa-war) script for more details.
+During `quaa up` a custom .war will be created and uploaded during `cf push`. See the [`bin/customize-uaa-war`](bin/customize-uaa-war) script for more details.
 
 ```plain
 $ customize-uaa-war
