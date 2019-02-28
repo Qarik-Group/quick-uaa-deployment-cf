@@ -1,0 +1,1 @@
+* `quaa up` now uses `buildpacks:` in `cf push` manifest

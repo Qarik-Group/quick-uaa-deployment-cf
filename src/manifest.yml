@@ -3,7 +3,8 @@ applications:
 - name: uaa
   memory: 1024M
   instances: 1
-  buildpack: java_buildpack
+  buildpacks:
+  - java_buildpack
   random-route: false
   path: ((war_path))
   routes:
