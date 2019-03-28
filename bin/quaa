@@ -323,6 +323,7 @@ uaa_int_args() {
 }
 
 uaa_int() {
+    _check_cf_target quiet
     cf_db_service_instance_url > /dev/null
     bosh int $(uaa_int_args) "$@"
 }
@@ -348,7 +349,11 @@ cf_int() {
     bosh int $(cf_int_args) "$@"
 }
 _check_cf_target() {
-    cf target
+    if [[ "${1:-}" == "quiet" ]]; then
+        cf target > /dev/null
+    else
+        cf target
+    fi
 }
 
 _ensure_cf_cli_installed() {
