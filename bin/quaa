@@ -258,6 +258,7 @@ clear_cache() {
 
 cf_db_service_instance_url() {
   if [[ ! -f ${cache}/service_instance_url ]]; then
+    _check_cf_target quiet
     service_instance=$(cf curl "/v2/spaces/$(cf_current_space_guid)/service_instances?q=name:$(dbname)")
     if [[ "$(bosh int <(echo "${service_instance}") --path /total_results)" == "0" ]]; then
       (>&2 echo "Please create PostgreSQL/MySQL service instance named $(dbname)")
@@ -272,6 +273,7 @@ cf_db_service_key_uri() {
   service_keys=$(cf curl $(cf_db_service_instance_url)/service_keys)
   if [[ "$(bosh int <(echo "${service_keys}") --path /total_results)" == "0" ]]; then
     (>&2 echo "Creating service key for service instance $(dbname)")
+    _check_cf_target quiet
     cf create-service-key $(dbname) $(dbname) >&2
     service_keys=$(cf curl $(cf_db_service_instance_url)/service_keys)
   fi
@@ -323,7 +325,6 @@ uaa_int_args() {
 }
 
 uaa_int() {
-    _check_cf_target quiet
     cf_db_service_instance_url > /dev/null
     bosh int $(uaa_int_args) "$@"
 }
