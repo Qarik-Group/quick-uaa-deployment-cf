@@ -1,0 +1,13 @@
+- type: replace
+  path: /login/selfServiceLinksEnabled
+  value: true
+
+- type: replace
+  path: /smtp?
+  value:
+    from_address: ((smtp_from_address))
+    host:     ((smtp_host))
+    port:     ((smtp_port))
+    user:     ((smtp_user))
+    password: ((smtp_password))
+    starttls: true
