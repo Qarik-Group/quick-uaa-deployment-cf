@@ -56,7 +56,7 @@ faketty() {
 
 validate_vars_file() {
     if [ ! -e $vars_file ]; then
-      eval "echo \"$(<src/vars.tmpl)\"" > $vars_file
+      eval "echo \"$(<$repo_root/src/vars.tmpl)\"" > $vars_file
     fi
 }
 
