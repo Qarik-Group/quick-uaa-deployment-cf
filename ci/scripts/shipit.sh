@@ -50,6 +50,10 @@ git clone "${REPO_ROOT}" "${REPO_OUT}"
 git clone "${REPO_ROOT_MASTER}" "${REPO_OUT_MASTER}"
 
 header "Generate Github release & Slack notification"
+# item to change in .versions
+ENTITY_NAME=uaa-deployment
+sed -i "s/.*${ENTITY_NAME}.*/${ENTITY_NAME}=$VERSION/" ${REPO_OUT}/.versions
+
 mkdir -p ${RELEASE_ROOT}/artifacts
 echo "v${VERSION}"                 > ${RELEASE_ROOT}/tag
 echo "v${VERSION}"                 > ${RELEASE_ROOT}/name
@@ -58,7 +62,7 @@ cat >> ${RELEASE_ROOT}/notes.md <<EOF
 
 ### Versions
 \`\`\`plain
-$(cat ${REPO_OUT_MASTER}/.versions)
+$(cat ${REPO_OUT}/.versions)
 \`\`\`
 EOF
 
@@ -69,10 +73,6 @@ EOS
 
 header "Update git repo for release of ${VERSION}"
 pushd "${REPO_OUT}" > /dev/null
-
-# item to change in .versions
-ENTITY_NAME=uaa-deployment
-sed -i "s/.*${ENTITY_NAME}.*/${ENTITY_NAME}=$VERSION/" .versions
 
 if [[ -z $(git config --global user.email) ]]; then
   git config --global user.email "${GIT_EMAIL}"
