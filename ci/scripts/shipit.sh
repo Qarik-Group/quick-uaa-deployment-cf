@@ -75,6 +75,17 @@ pushd "${REPO_OUT_MASTER}" > /dev/null
 git pull ../${REPO_OUT} -X theirs --no-edit
 popd > /dev/null
 
+mkdir -p ${RELEASE_ROOT}/artifacts
+echo "v${VERSION}"                 > ${RELEASE_ROOT}/tag
+echo "v${VERSION}"                 > ${RELEASE_ROOT}/name
+mv ${REPO_OUT}/ci/release_notes.md   ${RELEASE_ROOT}/notes.md
+cat >> ${RELEASE_ROOT}/notes.md <<EOF
+
+### Versions
+\`\`\`plain
+$(cat ${REPO_OUT_MASTER}/.versions)
+\`\`\`
+EOF
 
 cat > ${NOTIFICATION_OUT:-notifications}/message <<EOS
 New ${GITHUB_REPO} v${VERSION} released. <https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}/releases/tag/v${VERSION}|Release notes>.
