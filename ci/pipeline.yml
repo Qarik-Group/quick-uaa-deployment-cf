@@ -60,6 +60,7 @@ groups:
 jobs:
   - name: test-develop
     serial_groups: ["test-up"]
+    public: true # only shows temporary secrets
     plan:
     - do:
       - name: git
@@ -90,6 +91,7 @@ jobs:
 
   - name: test-master
     serial_groups: ["test-up"]
+    public: true # only shows temporary secrets
     plan:
     - do:
       - name: git
