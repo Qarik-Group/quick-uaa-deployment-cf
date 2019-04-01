@@ -61,7 +61,6 @@ validate_vars_file() {
 }
 
 vars_file() {
-
     local state_vars=${state}/vars.yml
     bosh int $vars_file > $state_vars
     echo $state_vars
@@ -166,7 +165,7 @@ clean() {
     exit 1
   fi
   rm -rf ${state}
-  mv ${vars_file} ${vars_file}.bck
+  mv $vars_file $vars_file.bck
   echo "'state' dir has been cleaned and 'vars.yml' has been moved to 'vars.yml.bck'"
 }
 
@@ -222,8 +221,8 @@ _uaa_auth_client() {
 war_path() {
     local version=$(grep "^uaa-server=" ${repo_root}/.versions | cut -d= -f2)
     custom_build_name=custom
-    [[ -f ${project_root}/vars.yml ]] && {
-        custom_build_name=$(bosh int ${project_root}/vars.yml --path /route | sed -e "s%\.%-%g");
+    [[ -f $vars_file ]] && {
+        custom_build_name=$(bosh int $vars_file --path /route | sed -e "s%\.%-%g");
     }
     # Possibly produced by bin/customize-uaa-war
     local custom_war_path=${war_downloads}/uaa-${version}-${custom_build_name}.war
