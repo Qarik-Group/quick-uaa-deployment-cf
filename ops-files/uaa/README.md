@@ -4,12 +4,12 @@ You can customize your UAA by applying operator files. Create an `operators/uaa/
 
 This folder contains production-ready operator files and examples.
 
-For example, to enable multi-factor authentication/two-facto authentication, copy the `7-enable-mfa-google-auth.yml` file into `operators/` folder, and run `u up` to apply changes.
+For example, to enable multi-factor authentication/two-facto authentication, copy the `7-enable-mfa-google-auth.yml` file into `operators/` folder, and run `quaa up` to apply changes.
 
 ```plain
 mkdir -p operators/uaa/
 cp ops-files/uaa/7-enable-mfa-google-auth.yml operators/uaa/
-u up
+quaa up
 ```
 
 Some operator files will require additional `vars.yml` variables. Manually edit your `vars.yml` file and add your own values.

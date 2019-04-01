@@ -95,7 +95,8 @@ jobs:
     plan:
     - do:
       - name: git
-        get: git-master
+        get: git
+        resource: git-master
         trigger: true
       - name: test-up
         task: test-up

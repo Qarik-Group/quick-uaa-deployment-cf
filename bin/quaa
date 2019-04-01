@@ -149,7 +149,7 @@ up() {
 
 down() {
     if [ ! -e $vars_file ]; then
-      echo "please deploy the UAA first with 'u up'"
+      echo "please deploy the UAA first with 'quaa up'"
       exit 1
     fi
     _check_cf_target
