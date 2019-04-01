@@ -4,6 +4,8 @@ meta:
   target:  ohio-cf
   url:     https://ci2.starkandwayne.com
 
+  initial_version: 1.4.0
+
   aws:
     region_name: us-east-2
     access_key: ((aws-cfcommunity-access))
