@@ -1,6 +1,6 @@
 ---
 meta:
-  name:    uaa-deployment-cf
+  name:    quick-uaa-deployment-cf
   target:  ohio-cf
   url:     https://ci2.starkandwayne.com
 
