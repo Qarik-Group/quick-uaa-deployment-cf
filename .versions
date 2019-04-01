@@ -1,4 +1,4 @@
-uaa-deployment=1.3.0
+uaa-deployment=1.4.0
 cf=6.43.0
 bosh=5.4.0
 uaa-cli=0.0.1
