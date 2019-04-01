@@ -228,6 +228,7 @@ jobs:
         aggregate:
           - { get: version, passed: [rc], params: {bump: final} }
           - { get: git,     passed: [rc] }
+          - { get: git-master }
       - name: release
         task: release
         config:
@@ -240,56 +241,59 @@ jobs:
           inputs:
             - name: version
             - name: git
+            - name: git-master
           outputs:
             - name: gh
-            - name: pushme
+            - name: pushme-develop
+            - name: pushme-master
             - name: notifications
           run:
             path: ./git/ci/scripts/shipit.sh
             args: []
           params:
-            REPO_ROOT:    git
+            REPO_ROOT:        git
+            REPO_ROOT_MASTER: git-master
+            REPO_OUT:         pushme-develop
+            REPO_OUT_MASTER:  pushme-master
             VERSION_FROM: version/number
             RELEASE_ROOT: gh
-            REPO_OUT:     pushme
             NOTIFICATION_OUT: notifications
             BRANCH:        (( grab meta.github.branch ))
             GITHUB_OWNER:  (( grab meta.github.owner ))
+            GITHUB_REPO:   (( grab meta.github.repo ))
             GIT_EMAIL:      (( grab meta.git.email ))
             GIT_NAME:       (( grab meta.git.name ))
-            AWS_ACCESS_KEY:       (( grab meta.aws.access_key ))
-            AWS_SECRET_KEY:       (( grab meta.aws.secret_key ))
 
-      - name: upload-git
-        put: git
-        params:
-          rebase: true
-          repository: pushme
-      - name: github-release
-        put: github
-        params:
-          name:   gh/name
-          tag:    gh/tag
-          body:   gh/notes.md
-      - name: version-bump
-        put: version
-        params:
-          bump: patch
-      - name: notify
-        aggregate:
-        - put: notify
-          params:
-            channel:  (( grab meta.slack.channel ))
-            username: (( grab meta.slack.username ))
-            icon_url: (( grab meta.slack.icon ))
-            text_file: notifications/message
-      on_failure:
-        put: notify
-        params:
-          channel:  (( grab meta.slack.channel ))
-          username: (( grab meta.slack.username ))
-          icon_url: (( grab meta.slack.icon ))
-          text:    '(( concat meta.slack.fail_url " " meta.pipeline ": shipit job failed" ))'
+      # - name: upload-git
+      #   put: git
+      #   params:
+      #     rebase: true
+      #     repository: pushme
+      # - name: github-release
+      #   put: github
+      #   params:
+      #     name:   gh/name
+      #     tag:    gh/tag
+      #     body:   gh/notes.md
+      # - name: version-bump
+      #   put: version
+      #   params:
+      #     bump: patch
+      # - name: notify
+      #   aggregate:
+      #   - put: notify
+      #     params:
+      #       channel:  (( grab meta.slack.channel ))
+      #       username: (( grab meta.slack.username ))
+      #       icon_url: (( grab meta.slack.icon ))
+      #       text_file: notifications/message
+      # on_failure:
+      #   put: notify
+      #   params:
+      #     channel:  (( grab meta.slack.channel ))
+      #     username: (( grab meta.slack.username ))
+      #     icon_url: (( grab meta.slack.icon ))
+      #     text:    '(( concat meta.slack.fail_url " " meta.pipeline ": shipit job failed" ))'
 
   - name: check-uaa-server
     serial_groups: ["test-up"]
@@ -611,9 +615,9 @@ resources:
     source:
       url: (( grab meta.slack.webhook ))
 
-  - name: github
-    type: github-release
-    source:
-      user:         (( grab meta.github.owner ))
-      repository:   (( grab meta.github.repo ))
-      access_token: (( grab meta.github.access_token ))
+  # - name: github
+  #   type: github-release
+  #   source:
+  #     user:         (( grab meta.github.owner ))
+  #     repository:   (( grab meta.github.repo ))
+  #     access_token: (( grab meta.github.access_token ))
