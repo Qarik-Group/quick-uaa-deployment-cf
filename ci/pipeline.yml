@@ -600,8 +600,10 @@ resources:
   - name: uaa-cli
     type: github-release
     source:
-      user:         starkandwayne
-      repository:   uaa-cli-releases
+      user:         cloudfoundry-incubator
+      repository:   uaa-cli
+      release:      true
+      pre_release:  true
       access_token: (( grab meta.github.access_token ))
 
   - name: version

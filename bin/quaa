@@ -403,7 +403,7 @@ _ensure_bosh_cli_installed() {
 }
 
 _ensure_uaa_cli_installed() {
-    local url="https://github.com/starkandwayne/uaa-cli-releases/releases/download"
+    local url="https://github.com/cloudfoundry-incubator/uaa-cli/releases/download"
     local version=$(grep "^uaa-cli=" ${repo_root}/.versions | cut -d= -f2)
     local cli_path=${repo_root}/bin/uaa
 
