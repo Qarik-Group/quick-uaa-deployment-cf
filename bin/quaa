@@ -410,7 +410,7 @@ _ensure_uaa_cli_installed() {
     if ! ( [ -f ${cli_path} ] && ${cli_path} version | head -n 1 | grep ${version} > /dev/null); then
       (>&2 echo "installing uaa cli '${version}' into: ${repo_root}/bin/")
       pushd $(mktemp -d)
-      curl -s -L >uaa "${url}/v${version}/uaa-$(platform)-amd64"
+      curl -s -L >uaa "${url}/${version}/uaa-$(platform)-amd64-${version}"
       chmod +x uaa
       mv uaa ${repo_root}/bin/
       popd
