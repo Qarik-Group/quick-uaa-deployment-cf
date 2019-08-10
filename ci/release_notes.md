@@ -1,9 +1,0 @@
-## Versions
-
-```
-uaa-deployment=1.4.0
-cf=6.46.0
-bosh=6.0.0
-uaa-cli=0.7.0
-uaa-server=74.0.0
-```
