@@ -18,7 +18,9 @@ pushd git-output
 
 sed -i "s/.*${ENTITY_NAME}.*/${ENTITY_NAME}=$ENTITY_VERSION/" .versions
 
-git add -A
-git status
-git commit -m "bump ${ENTITY_NAME} v${ENTITY_VERSION}"
+if [[ "$(git status -s)X" != "X" ]]; then
+  git add -A
+  git status
+  git commit -m "bump ${ENTITY_NAME} v${ENTITY_VERSION}"
+fi
 popd
