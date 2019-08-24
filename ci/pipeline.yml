@@ -58,7 +58,7 @@ groups:
       - check-uaa-server
       - check-uaa-cli
       - check-bosh-cli
-      - check-cf-cli
+      - check-cf6-cli
   - name: versioning
     jobs:
       - major
@@ -474,14 +474,13 @@ jobs:
           rebase: true
           repository: git-output
 
-  - name: check-cf-cli
+  - name: check-cf6-cli
     serial_groups: ["test-up"]
     plan:
     - do:
-      - name: git
-        get: git
-      - name: cf-cli
-        get: cf-cli
+      - get: git
+      - get: cf-cli
+        resource: cf6-cli
         params: {globs: ['ignore']}
         trigger: true
       - name: update-version
@@ -640,12 +639,13 @@ resources:
       repository:   bosh-cli
       access_token: (( grab meta.github.access_token ))
 
-  - name: cf-cli
+  - name: cf6-cli
     type: github-release
     source:
       user:         cloudfoundry
       repository:   cli
       access_token: (( grab meta.github.access_token ))
+      tag_filter:   v(6.*)
 
   - name: uaa-cli
     type: github-release
