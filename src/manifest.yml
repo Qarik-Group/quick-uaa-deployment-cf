@@ -14,4 +14,4 @@ applications:
     UAA_URL: https://((route))
     LOGIN_URL: https://((route))
     JBP_CONFIG_SPRING_AUTO_RECONFIGURATION: '{enabled: true}'
-    JBP_CONFIG_OPEN_JDK_JRE '{ jre: { version: 11.+ } }'
+    JBP_CONFIG_OPEN_JDK_JRE: '{ jre: { version: 11.+ } }'
