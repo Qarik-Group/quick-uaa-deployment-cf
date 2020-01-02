@@ -226,7 +226,7 @@ jobs:
     serial: true
     plan:
     - do:
-      - aggregate:
+      - in_parallel:
           - { get: git,     trigger: true,  passed: [pre] }
           - { get: version, trigger: false, params: {pre: rc} }
           - { get: git-master }
@@ -275,7 +275,7 @@ jobs:
     plan:
     - do:
       - name: inputs
-        aggregate:
+        in_parallel:
           - { get: version, passed: [rc], params: {bump: final} }
           - { get: git,     passed: [rc] }
           - { get: git-master }
@@ -335,7 +335,7 @@ jobs:
         params:
           bump: patch
       - name: notify
-        aggregate:
+        in_parallel:
         - put: notify
           params:
             channel:  (( grab meta.slack.channel ))

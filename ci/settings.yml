@@ -1,19 +1,19 @@
 ---
 meta:
   name:    quick-uaa-deployment-cf
-  target:  ohio-cf
-  url:     https://ci2.starkandwayne.com
+  target:  pipes@cfcommunity
+  url:     https://pipes.starkandwayne.com
 
   initial_version: 1.4.0
 
   aws:
     region_name: us-east-2
-    access_key: ((aws-cfcommunity-access))
-    secret_key: ((aws-cfcommunity-secret))
+    access_key: ((aws-cfcommunity.access))
+    secret_key: ((aws-cfcommunity.secret))
 
   git:
     email:  ((git-commit-email))
-    name:   ((git-commit-name))
+    name:   'Stark & Wayne CI Bot'
 
   github:
     owner:  starkandwayne
@@ -24,13 +24,13 @@ meta:
 
   cf:
     url:      https://api.run.pivotal.io
-    username: ((cf-pws-username))
-    password: ((cf-pws-password))
+    username: ((cf-pws.username))
+    password: ((cf-pws.password))
     organization: starkandwayne
     space:        uaa-deployment-cf-test
     test_route:   uaa-deployment-cf-test.cfapps.io
 
   slack:
     webhook:  ((slack-webhook))
-    icon:     ((slack-logo))
-    username: ((slack-username))
+    icon:     ((slack.logo))
+    username: ((slack.username))
