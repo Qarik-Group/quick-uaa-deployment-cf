@@ -2,4 +2,4 @@ uaa-deployment=1.5.0
 cf=6.51.0
 bosh=6.2.1
 uaa-cli=0.10.0
-uaa-server=74.16.0
+uaa-server=74.17.0
